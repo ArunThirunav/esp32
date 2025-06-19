@@ -1,0 +1,2 @@
+source /home/hinata/esp/bleprph/build/bootloader/gdbinit/symbols
+source /home/hinata/esp/bleprph/build/bootloader/gdbinit/connect

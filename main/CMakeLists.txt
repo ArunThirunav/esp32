@@ -1,2 +1,4 @@
-idf_component_register(SRCS "uart_events_example_main.c"
-                    INCLUDE_DIRS ".")
+file(GLOB_RECURSE srcs "*.c")
+
+idf_component_register(SRCS "${srcs}"
+                       INCLUDE_DIRS ".")

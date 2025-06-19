@@ -13,8 +13,8 @@ end
 
 # Load bootloader symbols
 set confirm off
-    add-symbol-file /home/hinata/UT/esp32/build/bootloader/bootloader.elf
+    add-symbol-file /home/hinata/esp/bleprph/build/bootloader/bootloader.elf
 set confirm on
 
 # Load application symbols
-file /home/hinata/UT/esp32/build/uart_events.elf
+file /home/hinata/esp/bleprph/build/bleprph.elf
