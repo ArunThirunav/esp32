@@ -42,7 +42,7 @@ static void uart_event_task(void *pvParameters)
             case UART_DATA:
 				ESP_LOGI(TAG, "[UART DATA]: %d", event.size);
 				uart_read_bytes(UART_SEL, dtmp, event.size, (TickType_t)portMAX_DELAY);
-				// memcpy(global_buffer+index, dtmp, event.size);
+				memcpy(global_buffer+index, dtmp, event.size);
 				// printf("String: %s", &global_buffer[index]);
 				// printf("dtemp: %s", dtmp);
 				index += event.size;
@@ -104,7 +104,7 @@ void app_main(void)
         .source_clk = UART_SCLK_DEFAULT,
     };
     //Install UART driver, and get the queue.
-    uart_driver_install(UART_SEL, BUF_SIZE * 15, BUF_SIZE * 2, 20, &uart1_queue, 0);
+    uart_driver_install(UART_SEL, BUF_SIZE * 15, BUF_SIZE * 2, 80, &uart1_queue, 0);
     uart_param_config(UART_SEL, &uart_config);
 
     //Set UART log level

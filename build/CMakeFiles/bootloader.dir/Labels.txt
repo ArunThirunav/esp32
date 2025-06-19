@@ -1,13 +1,13 @@
 # Target labels
  bootloader
 # Source files and their labels
-/home/hinata/esp/uart_events/build/CMakeFiles/bootloader
-/home/hinata/esp/uart_events/build/CMakeFiles/bootloader.rule
-/home/hinata/esp/uart_events/build/CMakeFiles/bootloader-complete.rule
-/home/hinata/esp/uart_events/build/bootloader-prefix/src/bootloader-stamp/bootloader-build.rule
-/home/hinata/esp/uart_events/build/bootloader-prefix/src/bootloader-stamp/bootloader-configure.rule
-/home/hinata/esp/uart_events/build/bootloader-prefix/src/bootloader-stamp/bootloader-download.rule
-/home/hinata/esp/uart_events/build/bootloader-prefix/src/bootloader-stamp/bootloader-install.rule
-/home/hinata/esp/uart_events/build/bootloader-prefix/src/bootloader-stamp/bootloader-mkdir.rule
-/home/hinata/esp/uart_events/build/bootloader-prefix/src/bootloader-stamp/bootloader-patch.rule
-/home/hinata/esp/uart_events/build/bootloader-prefix/src/bootloader-stamp/bootloader-update.rule
+/home/hinata/UT/esp32/build/CMakeFiles/bootloader
+/home/hinata/UT/esp32/build/CMakeFiles/bootloader.rule
+/home/hinata/UT/esp32/build/CMakeFiles/bootloader-complete.rule
+/home/hinata/UT/esp32/build/bootloader-prefix/src/bootloader-stamp/bootloader-build.rule
+/home/hinata/UT/esp32/build/bootloader-prefix/src/bootloader-stamp/bootloader-configure.rule
+/home/hinata/UT/esp32/build/bootloader-prefix/src/bootloader-stamp/bootloader-download.rule
+/home/hinata/UT/esp32/build/bootloader-prefix/src/bootloader-stamp/bootloader-install.rule
+/home/hinata/UT/esp32/build/bootloader-prefix/src/bootloader-stamp/bootloader-mkdir.rule
+/home/hinata/UT/esp32/build/bootloader-prefix/src/bootloader-stamp/bootloader-patch.rule
+/home/hinata/UT/esp32/build/bootloader-prefix/src/bootloader-stamp/bootloader-update.rule

@@ -10,18 +10,18 @@ if(NOT EXISTS "/home/hinata/esp/esp-idf/components/bootloader/subproject")
   file(MAKE_DIRECTORY "/home/hinata/esp/esp-idf/components/bootloader/subproject")
 endif()
 file(MAKE_DIRECTORY
-  "/home/hinata/esp/uart_events/build/bootloader"
-  "/home/hinata/esp/uart_events/build/bootloader-prefix"
-  "/home/hinata/esp/uart_events/build/bootloader-prefix/tmp"
-  "/home/hinata/esp/uart_events/build/bootloader-prefix/src/bootloader-stamp"
-  "/home/hinata/esp/uart_events/build/bootloader-prefix/src"
-  "/home/hinata/esp/uart_events/build/bootloader-prefix/src/bootloader-stamp"
+  "/home/hinata/UT/esp32/build/bootloader"
+  "/home/hinata/UT/esp32/build/bootloader-prefix"
+  "/home/hinata/UT/esp32/build/bootloader-prefix/tmp"
+  "/home/hinata/UT/esp32/build/bootloader-prefix/src/bootloader-stamp"
+  "/home/hinata/UT/esp32/build/bootloader-prefix/src"
+  "/home/hinata/UT/esp32/build/bootloader-prefix/src/bootloader-stamp"
 )
 
 set(configSubDirs )
 foreach(subDir IN LISTS configSubDirs)
-    file(MAKE_DIRECTORY "/home/hinata/esp/uart_events/build/bootloader-prefix/src/bootloader-stamp/${subDir}")
+    file(MAKE_DIRECTORY "/home/hinata/UT/esp32/build/bootloader-prefix/src/bootloader-stamp/${subDir}")
 endforeach()
 if(cfgdir)
-  file(MAKE_DIRECTORY "/home/hinata/esp/uart_events/build/bootloader-prefix/src/bootloader-stamp${cfgdir}") # cfgdir has leading slash
+  file(MAKE_DIRECTORY "/home/hinata/UT/esp32/build/bootloader-prefix/src/bootloader-stamp${cfgdir}") # cfgdir has leading slash
 endif()

@@ -1,2 +1,0 @@
-source /home/hinata/esp/uart_events/build/bootloader/gdbinit/symbols
-source /home/hinata/esp/uart_events/build/bootloader/gdbinit/connect
