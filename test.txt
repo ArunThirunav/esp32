@@ -1,0 +1,1 @@
+Standard UART baud rates, which define the speed of data transmission, include 1200, 2400, 4800, 9600, 19200, 38400, 57600, 115200, 230400, 460800, and 921600. While 9600 and 115200 are common, the specific rate depends on the application and the need for faster data transmission. 

@@ -1,0 +1,158 @@
+���c0�ESP-ROM:esp32s3-20210327
+Build:Mar 27 2021
+rst:0x1 (POWERON),boot:0x2b (SPI_FAST_FLASH_BOOT)
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x3fce2810,len:0x15a0
+load:0x403c8700,len:0x4
+load:0x403c8704,len:0xd20
+load:0x403cb700,len:0x2f00
+entry 0x403c8928
+[0;32mI (27) boot: ESP-IDF v5.4.1 2nd stage bootloader[0m
+[0;32mI (27) boot: compile time Jun 19 2025 00:05:43[0m
+[0;32mI (27) boot: Multicore bootloader[0m
+[0;32mI (27) boot: chip revision: v0.2[0m
+[0;32mI (30) boot: efuse block revision: v1.3[0m
+[0;32mI (34) boot.esp32s3: Boot SPI Speed : 80MHz[0m
+[0;32mI (37) boot.esp32s3: SPI Mode       : DIO[0m
+[0;32mI (41) boot.esp32s3: SPI Flash Size : 2MB[0m
+[0;32mI (45) boot: Enabling RNG early entropy source...[0m
+[0;32mI (49) boot: Partition Table:[0m
+[0;32mI (52) boot: ## Label            Usage          Type ST Offset   Length[0m
+[0;32mI (58) boot:  0 nvs              WiFi data        01 02 00009000 00006000[0m
+[0;32mI (65) boot:  1 phy_init         RF data          01 01 0000f000 00001000[0m
+[0;32mI (71) boot:  2 factory          factory app      00 00 00010000 00100000[0m
+[0;32mI (78) boot: End of partition table[0m
+[0;32mI (81) esp_image: segment 0: paddr=00010020 vaddr=3c020020 size=0b298h ( 45720) map[0m
+[0;32mI (97) esp_image: segment 1: paddr=0001b2c0 vaddr=3fc93400 size=029e8h ( 10728) load[0m
+[0;32mI (99) esp_image: segment 2: paddr=0001dcb0 vaddr=40374000 size=02368h (  9064) load[0m
+[0;32mI (105) esp_image: segment 3: paddr=00020020 vaddr=42000020 size=1a198h (106904) map[0m
+[0;32mI (130) esp_image: segment 4: paddr=0003a1c0 vaddr=40376368 size=0cfe8h ( 53224) load[0m
+[0;32mI (141) esp_image: segment 5: paddr=000471b0 vaddr=600fe100 size=0001ch (    28) load[0m
+[0;32mI (148) boot: Loaded app from partition at offset 0x10000[0m
+[0;32mI (148) boot: Disabling RNG early entropy source...[0m
+[0;32mI (159) cpu_start: Multicore app[0m
+[0;32mI (168) cpu_start: Pro cpu start user code[0m
+[0;32mI (168) cpu_start: cpu freq: 160000000 Hz[0m
+[0;32mI (168) app_init: Application information:[0m
+[0;32mI (168) app_init: Project name:     uart_events[0m
+[0;32mI (173) app_init: App version:      1667ae5-dirty[0m
+[0;32mI (177) app_init: Compile time:     Jun 19 2025 00:05:33[0m
+[0;32mI (182) app_init: ELF file SHA256:  29e7092ca...[0m
+[0;32mI (186) app_init: ESP-IDF:          v5.4.1[0m
+[0;32mI (190) efuse_init: Min chip rev:     v0.0[0m
+[0;32mI (194) efuse_init: Max chip rev:     v0.99 [0m
+[0;32mI (198) efuse_init: Chip rev:         v0.2[0m
+[0;32mI (202) heap_init: Initializing. RAM available for dynamic allocation:[0m
+[0;32mI (208) heap_init: At 3FC96AB8 len 00052C58 (331 KiB): RAM[0m
+[0;32mI (213) heap_init: At 3FCE9710 len 00005724 (21 KiB): RAM[0m
+[0;32mI (219) heap_init: At 3FCF0000 len 00008000 (32 KiB): DRAM[0m
+[0;32mI (224) heap_init: At 600FE11C len 00001ECC (7 KiB): RTCRAM[0m
+[0;32mI (230) spi_flash: detected chip: boya[0m
+[0;32mI (232) spi_flash: flash io: dio[0m
+[0;33mW (235) spi_flash: Detected size(16384k) larger than the size in the binary image header(2048k). Using the size in the binary image header.[0m
+[0;32mI (248) sleep_gpio: Configure to isolate all GPIO pins in sleep state[0m
+[0;32mI (254) sleep_gpio: Enable automatic switching of GPIO sleep configuration[0m
+[0;32mI (261) main_task: Started on CPU0[0m
+[0;32mI (281) main_task: Calling app_main()[0m
+[0;32mI (281) uart: queue free spaces: 20[0m
+[0;32mI (281) main_task: Returned from app_main()[0m
+[0;32mI (4521) uart_events: uart[1] event[0m
+[0;32mI (4521) uart_events: [UART DATA]: 120[0m
+[0;32mI (4521) uart_events: [DATA INDEX]: 0[0m
+[0;32mI (4521) uart_events: uart[1] event[0m
+[0;32mI (4521) uart_events: [UART DATA]: 120[0m
+[0;32mI (4521) uart_events: [DATA INDEX]: 120[0m
+[0;32mI (4531) uart_events: uart[1] event[0m
+[0;32mI (4531) uart_events: [UART DATA]: 120[0m
+[0;32mI (4531) uart_events: [DATA INDEX]: 240[0m
+[0;32mI (4541) uart_events: uart[1] event[0m
+[0;32mI (4541) uart_events: [UART DATA]: 120[0m
+[0;32mI (4541) uart_events: [DATA INDEX]: 360[0m
+[0;32mI (4551) uart_events: uart[1] event[0m
+[0;32mI (4551) uart_events: [UART DATA]: 120[0m
+[0;32mI (4551) uart_events: [DATA INDEX]: 480[0m
+[0;32mI (4561) uart_events: uart[1] event[0m
+[0;32mI (4561) uart_events: [UART DATA]: 120[0m
+[0;32mI (4561) uart_events: [DATA INDEX]: 600[0m
+[0;32mI (4571) uart_events: uart[1] event[0m
+[0;32mI (4571) uart_events: [UART DATA]: 120[0m
+[0;32mI (4571) uart_events: [DATA INDEX]: 720[0m
+[0;32mI (4581) uart_events: uart[1] event[0m
+[0;32mI (4581) uart_events: [UART DATA]: 120[0m
+[0;32mI (4581) uart_events: [DATA INDEX]: 840[0m
+[0;32mI (4591) uart_events: uart[1] event[0m
+[0;32mI (4591) uart_events: [UART DATA]: 120[0m
+[0;32mI (4591) uart_events: [DATA INDEX]: 960[0m
+[0;32mI (4601) uart_events: uart[1] event[0m
+[0;32mI (4601) uart_events: [UART DATA]: 120[0m
+[0;32mI (4601) uart_events: [DATA INDEX]: 1080[0m
+[0;32mI (4611) uart_events: uart[1] event[0m
+[0;32mI (4611) uart_events: [UART DATA]: 120[0m
+[0;32mI (4611) uart_events: [DATA INDEX]: 1200[0m
+[0;32mI (4621) uart_events: uart[1] event[0m
+[0;32mI (4621) uart_events: [UART DATA]: 120[0m
+[0;32mI (4621) uart_events: [DATA INDEX]: 1320[0m
+[0;32mI (4631) uart_events: uart[1] event[0m
+[0;32mI (4631) uart_events: [UART DATA]: 120[0m
+[0;32mI (4631) uart_events: [DATA INDEX]: 1440[0m
+[0;32mI (4641) uart_events: uart[1] event[0m
+[0;32mI (4641) uart_events: [UART DATA]: 120[0m
+[0;32mI (4641) uart_events: [DATA INDEX]: 1560[0m
+[0;32mI (4651) uart_events: uart[1] event[0m
+[0;32mI (4651) uart_events: [UART DATA]: 120[0m
+[0;32mI (4661) uart_events: [DATA INDEX]: 1680[0m
+[0;32mI (4661) uart_events: uart[1] event[0m
+[0;32mI (4661) uart_events: [UART DATA]: 120[0m
+[0;32mI (4671) uart_events: [DATA INDEX]: 1800[0m
+[0;32mI (4671) uart_events: uart[1] event[0m
+[0;32mI (4671) uart_events: [UART DATA]: 120[0m
+[0;32mI (4681) uart_events: [DATA INDEX]: 1920[0m
+[0;32mI (4681) uart_events: uart[1] event[0m
+[0;32mI (4681) uart_events: [UART DATA]: 120[0m
+[0;32mI (4691) uart_events: [DATA INDEX]: 2040[0m
+[0;32mI (4691) uart_events: uart[1] event[0m
+[0;32mI (4691) uart_events: [UART DATA]: 120[0m
+[0;32mI (4701) uart_events: [DATA INDEX]: 2160[0m
+[0;32mI (4701) uart_events: uart[1] event[0m
+[0;32mI (4701) uart_events: [UART DATA]: 120[0m
+[0;32mI (4711) uart_events: [DATA INDEX]: 2280[0m
+[0;32mI (4711) uart_events: uart[1] event[0m
+[0;32mI (4711) uart_events: [UART DATA]: 120[0m
+[0;32mI (4721) uart_events: [DATA INDEX]: 2400[0m
+[0;32mI (4721) uart_events: uart[1] event[0m
+[0;32mI (4721) uart_events: [UART DATA]: 120[0m
+[0;32mI (4731) uart_events: [DATA INDEX]: 2520[0m
+[0;32mI (4731) uart_events: uart[1] event[0m
+[0;32mI (4731) uart_events: [UART DATA]: 120[0m
+[0;32mI (4741) uart_events: [DATA INDEX]: 2640[0m
+[0;32mI (4741) uart_events: uart[1] event[0m
+[0;32mI (4741) uart_events: [UART DATA]: 120[0m
+[0;32mI (4751) uart_events: [DATA INDEX]: 2760[0m
+[0;32mI (4751) uart_events: uart[1] event[0m
+[0;32mI (4751) uart_events: [UART DATA]: 120[0m
+[0;32mI (4761) uart_events: [DATA INDEX]: 2880[0m
+[0;32mI (4761) uart_events: uart[1] event[0m
+[0;32mI (4771) uart_events: [UART DATA]: 120[0m
+[0;32mI (4771) uart_events: [DATA INDEX]: 3000[0m
+[0;32mI (4771) uart_events: uart[1] event[0m
+[0;32mI (4781) uart_events: [UART DATA]: 120[0m
+[0;32mI (4781) uart_events: [DATA INDEX]: 3120[0m
+[0;32mI (4781) uart_events: uart[1] event[0m
+[0;32mI (4791) uart_events: [UART DATA]: 120[0m
+[0;32mI (4791) uart_events: [DATA INDEX]: 3240[0m
+[0;32mI (4791) uart_events: uart[1] event[0m
+[0;32mI (4801) uart_events: [UART DATA]: 120[0m
+[0;32mI (4801) uart_events: [DATA INDEX]: 3360[0m
+[0;32mI (4801) uart_events: uart[1] event[0m
+[0;32mI (4811) uart_events: [UART DATA]: 120[0m
+[0;32mI (4811) uart_events: [DATA INDEX]: 3480[0m
+[0;32mI (4811) uart_events: uart[1] event[0m
+[0;32mI (4821) uart_events: [UART DATA]: 120[0m
+[0;32mI (4821) uart_events: [DATA INDEX]: 3600[0m
+[0;32mI (4821) uart_events: uart[1] event[0m
+[0;32mI (4831) uart_events: [UART DATA]: 120[0m
+[0;32mI (4831) uart_events: [DATA INDEX]: 3720[0m
+[0;32mI (4831) uart_events: uart[1] event[0m
+[0;32mI (4841) uart_events: [UART DATA]: 120[0m
+[0;32mI (4841) uart_events: [DATA INDEX]: 3840[0m

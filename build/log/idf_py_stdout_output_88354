@@ -1,0 +1,45 @@
+[1/7] Building C object esp-idf/main/CMakeFiles/__idf_main.dir/uart_events_example_main.c.obj
+/home/hinata/esp/uart_events/main/uart_events_example_main.c:18:16: warning: 'global_buffer' defined but not used [-Wunused-variable]
+   18 | static uint8_t global_buffer[BUFFER_SIZE];
+      |                ^~~~~~~~~~~~~
+[2/7] Linking C static library esp-idf/main/libmain.a
+[3/7] Generating ld/sections.ld
+[4/7] Linking CXX executable uart_events.elf
+[5/7] Generating binary image from built executable
+esptool.py v4.8.1
+Creating esp32s3 image...
+Merged 2 ELF sections
+Successfully created esp32s3 image.
+Generated /home/hinata/esp/uart_events/build/uart_events.bin
+[6/7] cd /home/hinata/esp/uart_events/build/esp-idf/esptool_py && /home/hinata/.espressif/python_env/idf5.4_py3.12_env/bin/python /home/hinata/esp/esp-idf/components/partition_table/check_sizes.py --offset 0x8000 partition --type app /home/hinata/esp/uart_events/build/partition_table/partition-table.bin /home/hinata/esp/uart_events/build/uart_events.bin
+uart_events.bin binary size 0x371f0 bytes. Smallest app partition is 0x100000 bytes. 0xc8e10 bytes (78%) free.
+[6/7] cd /home/hinata/esp/esp-idf/components/esptool_py && /usr/bin/cmake -D IDF_PATH=/home/hinata/esp/esp-idf -D "SERIAL_TOOL=/home/hinata/.espressif/python_env/idf5.4_py3.12_env/bin/python;;/home/hinata/esp/esp-idf/components/esptool_py/esptool/esptool.py;--chip;esp32s3" -D "SERIAL_TOOL_ARGS=--before=default_reset;--after=hard_reset;write_flash;@app-flash_args" -D WORKING_DIRECTORY=/home/hinata/esp/uart_events/build -P /home/hinata/esp/esp-idf/components/esptool_py/run_serial_tool.cmake
+esptool.py --chip esp32s3 -p /dev/ttyACM0 -b 460800 --before=default_reset --after=hard_reset write_flash --flash_mode dio --flash_freq 80m --flash_size 2MB 0x10000 uart_events.bin
+esptool.py v4.8.1
+Serial port /dev/ttyACM0
+Connecting...
+Chip is ESP32-S3 (QFN56) (revision v0.2)
+Features: WiFi, BLE, Embedded PSRAM 8MB (AP_3v3)
+Crystal is 40MHz
+MAC: a0:85:e3:f0:76:14
+Uploading stub...
+Running stub...
+Stub running...
+Changing baud rate to 460800
+Changed.
+Configuring flash size...
+Flash will be erased from 0x00010000 to 0x00047fff...
+Compressed 225776 bytes to 120700...
+Writing at 0x00010000... (12 %)
+Writing at 0x0001cf15... (25 %)
+Writing at 0x0002357a... (37 %)
+Writing at 0x00029b4f... (50 %)
+Writing at 0x000300c4... (62 %)
+Writing at 0x0003873a... (75 %)
+Writing at 0x0003e56a... (87 %)
+Writing at 0x00044a21... (100 %)
+Wrote 225776 bytes (120700 compressed) at 0x00010000 in 3.1 seconds (effective 586.5 kbit/s)...
+Hash of data verified.
+
+Leaving...
+Hard resetting via RTS pin...
