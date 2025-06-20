@@ -1,2 +1,2 @@
-source /home/hinata/esp/bleprph/build/bootloader/gdbinit/symbols
-source /home/hinata/esp/bleprph/build/bootloader/gdbinit/connect
+source D:/CodeBase/Vantage_BLE/esp32/build/bootloader/gdbinit/symbols
+source D:/CodeBase/Vantage_BLE/esp32/build/bootloader/gdbinit/connect

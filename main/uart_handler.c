@@ -33,8 +33,12 @@ int parse_data(const uint8_t* data){
     switch (data[1]) {
     case BLE_CONFIG_REQUEST:
         ESP_LOGI(TAG, "Received: BLE_CONFIG_REQUEST");
-        uart_write_bytes(UART_PORT, (const char *)data, 0x04);
-        break;    
+        status = uart_write_bytes(UART_PORT, (const char *)data, 0x04);
+        break;
+    case BLE_VERSION_REQUEST:
+        ESP_LOGI(TAG, "Received: BLE_VERSION_REQUEST");
+        status = uart_write_bytes(UART_PORT, (const char *)data, 0x04);
+        break;
     default:
         ESP_LOGI(TAG, "Received: INVALID REQUEST %d", data[1]);
         status = ESP_FAIL;

@@ -1,13 +1,13 @@
 # Target labels
  bootloader
 # Source files and their labels
-/home/hinata/esp/bleprph/build/CMakeFiles/bootloader
-/home/hinata/esp/bleprph/build/CMakeFiles/bootloader.rule
-/home/hinata/esp/bleprph/build/CMakeFiles/bootloader-complete.rule
-/home/hinata/esp/bleprph/build/bootloader-prefix/src/bootloader-stamp/bootloader-build.rule
-/home/hinata/esp/bleprph/build/bootloader-prefix/src/bootloader-stamp/bootloader-configure.rule
-/home/hinata/esp/bleprph/build/bootloader-prefix/src/bootloader-stamp/bootloader-download.rule
-/home/hinata/esp/bleprph/build/bootloader-prefix/src/bootloader-stamp/bootloader-install.rule
-/home/hinata/esp/bleprph/build/bootloader-prefix/src/bootloader-stamp/bootloader-mkdir.rule
-/home/hinata/esp/bleprph/build/bootloader-prefix/src/bootloader-stamp/bootloader-patch.rule
-/home/hinata/esp/bleprph/build/bootloader-prefix/src/bootloader-stamp/bootloader-update.rule
+D:/CodeBase/Vantage_BLE/esp32/build/CMakeFiles/bootloader
+D:/CodeBase/Vantage_BLE/esp32/build/CMakeFiles/bootloader.rule
+D:/CodeBase/Vantage_BLE/esp32/build/CMakeFiles/bootloader-complete.rule
+D:/CodeBase/Vantage_BLE/esp32/build/bootloader-prefix/src/bootloader-stamp/bootloader-build.rule
+D:/CodeBase/Vantage_BLE/esp32/build/bootloader-prefix/src/bootloader-stamp/bootloader-configure.rule
+D:/CodeBase/Vantage_BLE/esp32/build/bootloader-prefix/src/bootloader-stamp/bootloader-download.rule
+D:/CodeBase/Vantage_BLE/esp32/build/bootloader-prefix/src/bootloader-stamp/bootloader-install.rule
+D:/CodeBase/Vantage_BLE/esp32/build/bootloader-prefix/src/bootloader-stamp/bootloader-mkdir.rule
+D:/CodeBase/Vantage_BLE/esp32/build/bootloader-prefix/src/bootloader-stamp/bootloader-patch.rule
+D:/CodeBase/Vantage_BLE/esp32/build/bootloader-prefix/src/bootloader-stamp/bootloader-update.rule

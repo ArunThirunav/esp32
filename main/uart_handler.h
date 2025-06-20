@@ -40,8 +40,17 @@ typedef enum {
     BLE_FW_PROGRESS = 0x40,
     BLE_CONFIG_REQUEST = 0x50,
     BLE_CONFIG_RESPONSE = 0x51,
+    BLE_VERSION_REQUEST = 0x52,
+    BLE_VERSION_RESPONSE = 0x53,
     BLE_PKT_ERROR = 0x60
 }packet_type_t;
+
+typedef enum {
+    START_BYTE_ERROR = 0x01,
+    INVALID_PACKET_ERROR = 0x02, 
+    CRC_CHECK_ERROR = 0x03,
+    UNKNOWN_ERROR
+}error_code_t;
 
 /* FUNCTION PROTOTYPES */
 void uart_event_task(void *pvParameters);

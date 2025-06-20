@@ -4,7 +4,7 @@
             "name": "Linux",
             "includePath": [
                 "${workspaceFolder}/**",
-                "/home/hinata/esp/esp-idf/**"
+                "C:/Espressif/frameworks/esp-idf-v5.4.1/**"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/clang-18",

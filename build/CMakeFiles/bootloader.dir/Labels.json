@@ -2,34 +2,34 @@
 	"sources" : 
 	[
 		{
-			"file" : "/home/hinata/esp/bleprph/build/CMakeFiles/bootloader"
+			"file" : "D:/CodeBase/Vantage_BLE/esp32/build/CMakeFiles/bootloader"
 		},
 		{
-			"file" : "/home/hinata/esp/bleprph/build/CMakeFiles/bootloader.rule"
+			"file" : "D:/CodeBase/Vantage_BLE/esp32/build/CMakeFiles/bootloader.rule"
 		},
 		{
-			"file" : "/home/hinata/esp/bleprph/build/CMakeFiles/bootloader-complete.rule"
+			"file" : "D:/CodeBase/Vantage_BLE/esp32/build/CMakeFiles/bootloader-complete.rule"
 		},
 		{
-			"file" : "/home/hinata/esp/bleprph/build/bootloader-prefix/src/bootloader-stamp/bootloader-build.rule"
+			"file" : "D:/CodeBase/Vantage_BLE/esp32/build/bootloader-prefix/src/bootloader-stamp/bootloader-build.rule"
 		},
 		{
-			"file" : "/home/hinata/esp/bleprph/build/bootloader-prefix/src/bootloader-stamp/bootloader-configure.rule"
+			"file" : "D:/CodeBase/Vantage_BLE/esp32/build/bootloader-prefix/src/bootloader-stamp/bootloader-configure.rule"
 		},
 		{
-			"file" : "/home/hinata/esp/bleprph/build/bootloader-prefix/src/bootloader-stamp/bootloader-download.rule"
+			"file" : "D:/CodeBase/Vantage_BLE/esp32/build/bootloader-prefix/src/bootloader-stamp/bootloader-download.rule"
 		},
 		{
-			"file" : "/home/hinata/esp/bleprph/build/bootloader-prefix/src/bootloader-stamp/bootloader-install.rule"
+			"file" : "D:/CodeBase/Vantage_BLE/esp32/build/bootloader-prefix/src/bootloader-stamp/bootloader-install.rule"
 		},
 		{
-			"file" : "/home/hinata/esp/bleprph/build/bootloader-prefix/src/bootloader-stamp/bootloader-mkdir.rule"
+			"file" : "D:/CodeBase/Vantage_BLE/esp32/build/bootloader-prefix/src/bootloader-stamp/bootloader-mkdir.rule"
 		},
 		{
-			"file" : "/home/hinata/esp/bleprph/build/bootloader-prefix/src/bootloader-stamp/bootloader-patch.rule"
+			"file" : "D:/CodeBase/Vantage_BLE/esp32/build/bootloader-prefix/src/bootloader-stamp/bootloader-patch.rule"
 		},
 		{
-			"file" : "/home/hinata/esp/bleprph/build/bootloader-prefix/src/bootloader-stamp/bootloader-update.rule"
+			"file" : "D:/CodeBase/Vantage_BLE/esp32/build/bootloader-prefix/src/bootloader-stamp/bootloader-update.rule"
 		}
 	],
 	"target" : 

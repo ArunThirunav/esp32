@@ -48,17 +48,10 @@ static void ble_advertisement(void) {
    * stack fill this value automatically.  This is done by assigning the
    * special value BLE_HS_ADV_TX_PWR_LVL_AUTO.
    */
-  fields.tx_pwr_lvl_is_present = 1;
-  fields.tx_pwr_lvl = BLE_HS_ADV_TX_PWR_LVL_AUTO;
-
   name = ble_svc_gap_device_name();
   fields.name = (uint8_t *)name;
   fields.name_len = strlen(name);
   fields.name_is_complete = 1;
-
-  fields.uuids16 = (ble_uuid16_t[]){BLE_UUID16_INIT(GATT_SVR_SVC_ALERT_UUID)};
-  fields.num_uuids16 = 1;
-  fields.uuids16_is_complete = 1;
 
   rc = ble_gap_adv_set_fields(&fields);
   if (rc != 0) {
