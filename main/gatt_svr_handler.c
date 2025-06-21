@@ -1,7 +1,9 @@
 #include "stdint.h"
+#include <inttypes.h>
 #include "gatt_svr_handler.h"
 #include "uart_handler.h"
 #include "crc.h"
+#include "utils.h"
 
 static void notify_error(uint16_t conn_handle, uint16_t attr_handle, uint8_t err_code);
 
@@ -24,17 +26,33 @@ int config_file_read_cb(uint16_t conn_handle, uint16_t attr_handle,
 int request_response_cb(uint16_t conn_handle, uint16_t attr_handle,
                            struct ble_gatt_access_ctxt *ctxt, void *arg) {
 	
-	const uint8_t *data = ctxt->om->om_data;
+	uart_data_pack_t packet;
+    uint8_t payload[PAYLOAD_LEN];
+    uint32_t crc;
 	int32_t status = ESP_OK;
+
+	const uint8_t *data = ctxt->om->om_data;
+	
+	packet.start_byte = data[0];
+	packet.packet_type = data[1];
+	packet.length = byte_array_to_u32_little_endian(&data[2]);
+	packet.crc = byte_array_to_u32_little_endian(&data[6 + packet.length]);
+
+	
+	ESP_LOGI("PACKET", "start_byte: 0x%X", packet.start_byte);
+	ESP_LOGI("PACKET", "packet_type: 0x%X", packet.packet_type);
+	ESP_LOGI("PACKET", "length: 0x%lX", packet.length);
+	ESP_LOGI("PACKET", "crc: 0x%lX", packet.crc);
+	
+
 	/* CHANGE BASED ON READ WRITE */					
 	switch (ctxt->op) {
 		case BLE_GATT_ACCESS_OP_READ_CHR:
 			ESP_LOGI("BLE", "Read Response");
 			break;
 		case BLE_GATT_ACCESS_OP_WRITE_CHR:
-			ESP_LOGI("BLE", "Request Sent");
-			if(true != validate_crc(data)) {
-				ESP_LOGW("TAG", "Invalid start byte: 0x%02X", data[0]);
+			if(true != validate_crc(data, (6 + packet.length), packet.crc)) {
+				ESP_LOGW("TAG", "CRC Error");
 				notify_error(conn_handle, attr_handle, CRC_CHECK_ERROR);
 				return -1;
 			}

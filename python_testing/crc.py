@@ -24,9 +24,9 @@ def crc32_iso(data: bytes) -> int:
     return crc ^ 0xFFFFFFFF
 
 # Test
-# data = bytes([0xA5, 0x50, 0x00])
-value = 0xA55000
-byte_array = value.to_bytes(3, byteorder='big')  # 3 bytes for 24 bits
+byte_array = bytes([0xA5, 0x50, 0x00, 0x00, 0x00, 0x01, 0xAA])
+# value = 0xA55000000000
+# byte_array = value.to_bytes(byteorder='big')  # 3 bytes for 24 bits
 print(f"CRC32 (ISO): 0x{crc32_iso(byte_array):08X}")
 
 # value = 0xA55000

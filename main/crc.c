@@ -1,4 +1,5 @@
 #include "crc.h"
+#include "esp_log.h"
 
 /* FUNCTION PROTOTYPE */
 static uint32_t reflect(uint32_t data, int bits);
@@ -23,8 +24,9 @@ static uint32_t reflect(uint32_t data, int bits) {
 static uint32_t crc32(const uint8_t *data, uint32_t length) {
     uint32_t crc = 0xFFFFFFFF;
     uint32_t poly = 0x04C11DB7;
-
+    
     for (uint32_t i = 0; i < length; i++) {
+        ESP_LOGI("BYTE", "0x%2X", data[i]);
         uint8_t byte = reflect(data[i], 8);
         crc ^= ((uint32_t)byte) << 24;
 
@@ -38,12 +40,15 @@ static uint32_t crc32(const uint8_t *data, uint32_t length) {
     }
 
     crc = reflect(crc, 32);
+    ESP_LOGI("CRC", "0x%2X", (int)(crc^0xFFFFFFFF));
     return crc ^ 0xFFFFFFFF;
 }
 
-bool validate_crc(const uint8_t* data){
-    uint32_t crc_calc = crc32(data, sizeof(data)-1);
-    if (crc_calc == data[sizeof(data)]) {
+bool validate_crc(const uint8_t* data, uint32_t length, uint32_t crc_in_packet){
+    uint32_t crc_calc = crc32(data, length);
+    ESP_LOGI("CRC CALCULATED", "0x%X", (int)crc_calc);
+
+    if (crc_calc == crc_in_packet) {
         return true;
     }
     else {

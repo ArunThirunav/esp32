@@ -4,6 +4,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-bool validate_crc(const uint8_t* data);
+bool validate_crc(const uint8_t* data, uint32_t length, uint32_t crc_in_packet);
 
 #endif /* END OF CRC_H */

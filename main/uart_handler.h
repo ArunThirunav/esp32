@@ -9,10 +9,11 @@
 #include "driver/uart.h"
 
 /* MACROS */
-#define START_BYTE              (0xA5)
+#define START_BYTE              0xA5
 #define PAYLOAD_LEN             (0x100)
 
 /* STRUCTS */
+#pragma pack(1)
 typedef struct {
     uint8_t start_byte;
     uint8_t packet_type;
