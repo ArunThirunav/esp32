@@ -3,7 +3,6 @@
 
 /* FUNCTION PROTOTYPE */
 static uint32_t reflect(uint32_t data, int bits);
-static uint32_t crc32(const uint8_t *data, uint32_t length);
 
 /**
  * @brief
@@ -21,12 +20,11 @@ static uint32_t reflect(uint32_t data, int bits) {
     return reflection;
 }
 
-static uint32_t crc32(const uint8_t *data, uint32_t length) {
+uint32_t crc32(const uint8_t *data, uint32_t length) {
     uint32_t crc = 0xFFFFFFFF;
     uint32_t poly = 0x04C11DB7;
     
     for (uint32_t i = 0; i < length; i++) {
-        ESP_LOGI("BYTE", "0x%2X", data[i]);
         uint8_t byte = reflect(data[i], 8);
         crc ^= ((uint32_t)byte) << 24;
 

@@ -2,6 +2,8 @@
     "idf.pythonInstallPath": "C:\\Espressif\\tools\\idf-python\\3.11.2\\python.exe",
     "files.associations": {
         "crc.h": "c",
-        "uart_handler.h": "c"
+        "uart_handler.h": "c",
+        "config_file_handle.h": "c",
+        "utils.h": "c"
     }
 }

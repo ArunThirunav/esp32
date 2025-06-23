@@ -13,3 +13,17 @@ uint32_t byte_array_to_u32_big_endian(const uint8_t* data) {
             ((uint32_t)data[2] << 16) |
             ((uint32_t)data[3] << 24); 
 }
+
+void u32_to_byte_array_little_endian(uint8_t* data, uint32_t length) {
+    data[0] = length >> 24;
+	data[1] = length >> 16;
+	data[2] = length >> 8;
+	data[3] = length;  
+}
+
+void u32_to_byte_array_big_endian(uint8_t* data, uint32_t length) {
+    data[0] = length;
+	data[1] = length >> 8;
+	data[2] = length >> 16;
+	data[3] = length >> 24;  
+}

@@ -59,7 +59,7 @@ typedef enum {
 /* FUNCTION PROTOTYPES */
 void uart_initialization(void);
 int uart_data_handler(const uint8_t* data);
-uint8_t* uart_read_data(int* length);
+uint8_t* uart_read_data(uint32_t* length);
 void uart_event_task(void *pvParameters);
 
 #endif /* END OF UART_HANDLER_H */

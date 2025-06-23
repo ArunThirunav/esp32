@@ -1,4 +1,4 @@
-#include <stdio.h>
+#include <stdint.h>
 #include <string.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -34,7 +34,7 @@ static QueueHandle_t uart1_queue;
 void junk_fill(void) {
 	int counter = 0;
 	memset(global_buffer, '\0', sizeof(global_buffer));
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 20; i++) {
         for (int j = 0; j < 500; j++){
             global_buffer[counter++] = 65+i;
         }
@@ -129,7 +129,7 @@ int uart_data_handler(const uint8_t* data){
 #define CHUNK_SIZE (500)
 int current_offset = 0;
 int sent = 0;
-uint8_t* uart_read_data(int* length){
+uint8_t* uart_read_data(uint32_t* length){
 	int remaining = FILE_SIZE - current_offset;
 	int prev_offset = 0;
     int len = remaining > CHUNK_SIZE ? CHUNK_SIZE : remaining;

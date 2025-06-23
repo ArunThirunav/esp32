@@ -2,8 +2,20 @@
 #include <inttypes.h>
 #include "gatt_svr_handler.h"
 #include "uart_handler.h"
+#include "config_file_handle.h"
 
 static void notify_client(uint16_t conn_handle, uint16_t attr_handle, uint8_t err_code);
+uint8_t version_request[42] = { 0xA5, 0x53 , 0x00, 0x00, 0x00, 0x20, 
+								0x00, 0x00, 0x01, 0x00, /* MRA */
+								0x00, 0x00, 0x01, 0x00, /* MRB */
+								0x00, 0x00, 0x01, 0x00, /* CTA */
+								0x00, 0x00, 0x01, 0x00, /* CTB */
+								0x00, 0x00, 0x01, 0x00, /* COP*/
+								0x00, 0x00, 0x01, 0x00, /* MRUI */
+								0x00, 0x00, 0x01, 0x00, /* CTUI */
+								0x00, 0x00, 0x01, 0x00, /* COPUI */
+								0xD3, 0xA2, 0x1A, 0x71,
+							};
 
 int file_transfer_write_cb(uint16_t conn_handle, uint16_t attr_handle,
                            struct ble_gatt_access_ctxt *ctxt, void *arg) {
@@ -14,12 +26,13 @@ int file_transfer_write_cb(uint16_t conn_handle, uint16_t attr_handle,
 
 int config_file_read_cb(uint16_t conn_handle, uint16_t attr_handle,
                            struct ble_gatt_access_ctxt *ctxt, void *arg) {
-	// Simulate writing to file
-	int length = 0;
-	const uint8_t *resp = uart_read_data(&length);
-	ESP_LOGI("BLE", "Read Callback bytes: %d", length);
-    os_mbuf_append(ctxt->om, resp, length);
-	if (length < 500) {
+	uint32_t length = 0;
+	const uint8_t *temp = get_config_file(&length);
+
+	ESP_LOGI("BLE", "Read Callback bytes: %ld", length);
+	os_mbuf_append(ctxt->om, temp, length);
+	/* 500 Bytes for Config File and 10 bytes incl. start, packType, len and crc*/
+	if (length < 510) {
 		notify_client(conn_handle, attr_handle, BLE_ACK);
 	}
 	return 0;
@@ -36,6 +49,7 @@ int request_response_cb(uint16_t conn_handle, uint16_t attr_handle,
 	switch (ctxt->op) {
 		case BLE_GATT_ACCESS_OP_READ_CHR:
 			ESP_LOGI("BLE", "Read Response");
+			os_mbuf_append(ctxt->om, version_request, sizeof(version_request));			
 			break;
 		case BLE_GATT_ACCESS_OP_WRITE_CHR:
 			status = uart_data_handler(data);
