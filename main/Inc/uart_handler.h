@@ -56,6 +56,12 @@ typedef enum {
     UNKNOWN_ERROR
 }error_code_t;
 
+typedef enum {
+    UART_WRITE_START,
+    UART_WRITE_DATA,
+    UART_WRITE_END
+}uart_write_state_t;
+
 /* FUNCTION PROTOTYPES */
 void uart_initialization(void);
 int uart_data_handler(const uint8_t* data);

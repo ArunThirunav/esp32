@@ -12,6 +12,7 @@
 
 static const char *TAG = "UART";
 #define UART_PORT UART_NUM_1
+#define NEXUS_SIMULATOR 0
 
 // In your header file or at top of C file
 #define BUF_SIZE (1024)
@@ -30,6 +31,10 @@ static uint8_t global_buffer[BUFFER_SIZE];
 
 char dtmp[BUF_SIZE];
 static QueueHandle_t uart1_queue;
+static uart_write_state_t uart_state = UART_WRITE_START;
+static uint32_t data_read_length = 0;
+
+static void uart_write_state_machine(uint8_t* data, uint32_t len);
 
 void junk_fill(void) {
 	int counter = 0;
@@ -65,7 +70,9 @@ void uart_initialization(void) {
     //Set UART pins (using UART0 default pins ie no changes.)
     uart_set_pin(UART_PORT, TXD_PIN, RXD_PIN, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
 
+    #if NEXUS_SIMULATOR
     junk_fill();
+    #endif /* END OF NEXUS_SIMULATOR */
 }
 
 /**
@@ -109,9 +116,6 @@ int uart_data_handler(const uint8_t* data){
         ESP_LOGI(TAG, "Received: BLE_VERSION_REQUEST");
         status = uart_write_bytes(UART_PORT, (char *)&packet, (10 + packet.length));
         break;
-    case BLE_CONFIG_RESPONSE:
-        
-        break;
     default:
         ESP_LOGI(TAG, "Received: INVALID REQUEST %d", packet.packet_type);
         status = INVALID_PACKET_ERROR;
@@ -147,6 +151,51 @@ uint8_t* uart_read_data(uint32_t* length){
     return &global_buffer[prev_offset];
 }
 
+void set_data_read_length(uint32_t length) {
+    ESP_LOGI("DATA_LEN: ", "%ld", length);
+    data_read_length = length;
+}
+
+uint32_t get_data_read_length(void) {
+    ESP_LOGI("DATA_LEN: ", "%ld", data_read_length);
+    return data_read_length;
+}
+
+static void uart_write_state_machine(uint8_t* data, uint32_t len) {
+    error_code_t status = SUCCESS;
+    static uint32_t counter = 0;
+    ESP_LOGI("TAG", "Came");
+    switch (uart_state) {
+    case UART_WRITE_START:
+        if (data[0] != START_BYTE) {
+            status = START_BYTE_ERROR;
+            uart_state = UART_WRITE_END;
+            break;
+        }
+        else {
+            set_data_read_length(byte_array_to_u32_little_endian(&data[2]));
+            uart_state = UART_WRITE_DATA;
+        }
+        memcpy(global_buffer+counter, &data[6], (len - 6));
+        counter += len;
+        break;
+    case UART_WRITE_DATA:
+        if (get_data_read_length() < counter) {
+            uart_state = UART_WRITE_END;
+        }
+        else{
+            memcpy(global_buffer+counter, data, len);
+            counter += len;
+        }
+        break;
+    case UART_WRITE_END:
+        uart_state = UART_WRITE_START;
+        break;
+    default:
+        break;
+    }
+}
+
 /**
  * @brief
  * @param
@@ -167,7 +216,7 @@ void uart_event_task(void *pvParameters)
             case UART_DATA:
 				ESP_LOGI(TAG, "[UART DATA]: %d", event.size);
 				uart_read_bytes(UART_PORT, dtmp, event.size, (TickType_t)portMAX_DELAY);
-				memcpy(global_buffer+index, dtmp, event.size);
+                uart_write_state_machine((uint8_t*)dtmp, event.size);
 				index += event.size;
 				uart_get_buffered_data_len(UART_PORT, &buffered_size);
 				ESP_LOGI(TAG, "[DATA INDEX]: %d and %d", index, buffered_size); 
