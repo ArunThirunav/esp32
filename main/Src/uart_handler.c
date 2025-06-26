@@ -26,6 +26,8 @@ extern bool config_request_flag;
 static bool header_packet_flag = true;
 static uint32_t data_read_length = 0;
 static uint32_t uart_write_index = 0;
+int current_offset = 0;
+int sent_bytes = 0;
 int uart_read_index = 0;
 
 static void uart_write_state_machine(uint8_t* data, uint32_t len);
@@ -81,6 +83,7 @@ void uart_initialization(void)
     // Set UART pins (using UART0 default pins ie no changes.)
     uart_set_pin(UART_PORT, TXD_PIN, RXD_PIN, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
 
+    reset_uart_configuration();
     // junk_fill();
 }
 
@@ -88,6 +91,9 @@ static void reset_uart_configuration(void) {
     uart_write_index = 0;
     uart_state = UART_WRITE_START;
     uart_read_index = 0;
+    sent_bytes = 0;
+    current_offset = 0;
+    memset(global_buffer, '\0', sizeof(global_buffer));
 }
 
 /**
@@ -97,15 +103,14 @@ static void reset_uart_configuration(void) {
  * */
 #define FILE_SIZE (5488)
 #define CHUNK_SIZE (500)
-int current_offset = 0;
-int sent = 0;
+
 uint8_t *uart_read_data(uint32_t *length)
 {
     int remaining = get_data_read_length() - current_offset;
     int prev_offset = 0;
     int len = remaining > CHUNK_SIZE ? CHUNK_SIZE : remaining;
 
-    ESP_LOGI("READ: ", "Sent: %d", sent += len);
+    ESP_LOGI("READ: ", "Sent: %d", sent_bytes += len);
 
     prev_offset = current_offset;
     *length = len;
