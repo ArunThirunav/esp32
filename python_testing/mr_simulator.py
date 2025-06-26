@@ -3,11 +3,12 @@ import time
 import os
 
 # UART configuration
-PORT = "/dev/ttyUSB0"   # Change to "COMx" for Windows
+# PORT = "/dev/ttyUSB0"   # Change to "COMx" for Windows
+PORT = "COM10"
 BAUDRATE = 115200
 TIMEOUT = 1000            # seconds
 TRIGGER_PACKET_SIZE = 10
-RESPONSE_SIZE = 5114    # 5 KB
+RESPONSE_SIZE = 5312    # 5 KB
 
 
 def reflect(value, bits):
@@ -54,7 +55,7 @@ def main():
         print(f"Listening on {PORT} for 10-byte trigger...")
 
         # Prepare 5 KB buffer (example: repeating pattern or random)
-        response_data = [0xA5, 0x53, 0x00, 0x00, 0x14, 0x00]
+        response_data = [0xA5, 0x51, 0xC0, 0x14, 0x00, 0x00]
         response_data += bytearray(os.urandom(RESPONSE_SIZE))  # or b'\xAA' * 5120
         response_data += crc32_iso(response_data).to_bytes(4, byteorder='big')
 

@@ -245,7 +245,7 @@ void ble_host_task(void *param)
 
 static void security_initialization(void) {
     ble_hs_cfg.sm_io_cap = 3;
-    ble_hs_cfg.sm_bonding = 0;
+    ble_hs_cfg.sm_bonding = 1;
     ble_hs_cfg.sm_mitm = 0;
     ble_hs_cfg.sm_sc = 0;
 }

@@ -45,11 +45,13 @@ uint32_t crc32(const uint8_t *data, uint32_t length) {
 bool validate_crc(const uint8_t* data, uint32_t length, uint32_t crc_in_packet){
     uint32_t crc_calc = crc32(data, length);
     ESP_LOGI("CRC CALCULATED", "0x%X", (int)crc_calc);
-
+    ESP_LOGI("CRC PACKET", "0x%X", (int)crc_in_packet);
     if (crc_calc == crc_in_packet) {
+        ESP_LOGI("CRC", "PASS");
         return true;
     }
     else {
+        ESP_LOGI("CRC", "FAIL");
         return false;
     }
 }
