@@ -1,3 +1,12 @@
+/* USER CODE BEGIN Header */
+/**
+ ******************************************************************************
+ * @file           : main.c
+ * @brief          : Main program body
+ ******************************************************************************
+ */
+/* USER CODE END Header */
+
 #include "esp_log.h"
 #include "nvs_flash.h"
 /* BLE */
@@ -19,23 +28,22 @@ static uint8_t own_addr_type;
 void ble_store_config_init(void);
 
 /**
- * Enables advertising with the following parameters:
- *     o General discoverable mode.
- *     o Undirected connectable mode.
+ * @brief Starts BLE advertising.
+ *
+ * This function configures and starts BLE advertising. It sets up the 
+ * advertisement data (device name, services, etc.) and makes the device 
+ * discoverable and connectable to BLE clients.
+ *
+ * @note This should be called after the BLE stack is synchronized and 
+ * the GATT server has been initialized.
+ *
+ * @return None
  */
 static void ble_advertisement(void) {
 	struct ble_gap_adv_params adv_params;
 	struct ble_hs_adv_fields fields;
 	const char *name;
 	int rc;
-
-	/**
-	 *  Set the advertisement data included in our advertisements:
-	 *     o Flags (indicates advertisement type and other general info).
-	 *     o Advertising tx power.
-	 *     o Device name.
-	 *     o 16-bit service UUIDs (alert notifications).
-	 */
 
 	memset(&fields, 0, sizeof fields);
 
@@ -75,7 +83,7 @@ static void ble_advertisement(void) {
 }
 
 /**
- * The nimble host executes this callback when a GAP event occurs.  The
+ * @brief The nimble host executes this callback when a GAP event occurs.  The
  * application associates a GAP event callback with each connection that forms.
  * bleprph uses the same callback for all connections.
  *
@@ -204,10 +212,31 @@ static int ble_gap_event(struct ble_gap_event *event, void *arg) {
 	return 0;
 }
 
+/**
+ * @brief Callback invoked when the BLE host stack resets.
+ *
+ * This function is called when the BLE host encounters a fatal error 
+ * and performs a reset. It is useful for logging the reason and 
+ * potentially triggering corrective actions or a full system reset.
+ *
+ * @param reason   Reset reason code. Matches one of the BLE host error codes.
+ *
+ * @return         None
+ */
 static void ble_on_reset(int reason) {
 	MODLOG_DFLT(ERROR, "Resetting state; reason=%d\n", reason);
 }
 
+/**
+ * @brief Callback invoked when the BLE stack is synchronized.
+ *
+ * This function is called when the NimBLE host and controller are 
+ * fully synchronized and the BLE stack is ready to begin operations, 
+ * such as advertising or scanning. Typically, GATT server initialization 
+ * and advertising start from this function.
+ *
+ * @return None
+ */
 static void ble_on_sync(void) {
 	int rc;
 	/* Make sure we have proper identity address set (public preferred) */
@@ -233,6 +262,20 @@ static void ble_on_sync(void) {
 	ble_advertisement();
 }
 
+/**
+ * @brief BLE host task for NimBLE stack execution.
+ *
+ * This FreeRTOS task runs the NimBLE BLE host stack event loop. 
+ * It is responsible for processing BLE events such as connections, 
+ * disconnections, GATT operations, and GAP events.
+ *
+ * This task typically runs indefinitely and should be created 
+ * during BLE initialization.
+ *
+ * @param param   Optional parameter passed to the task (usually NULL).
+ *
+ * @return None. This function never returns under normal operation.
+ */
 void ble_host_task(void *param)
 {
 	printf("BLE Host Task Started");
@@ -243,6 +286,19 @@ void ble_host_task(void *param)
 	printf("BLE After De init");
 }
 
+/**
+ * @brief Initializes BLE security configuration.
+ *
+ * This function configures the BLE security settings, including 
+ * bonding, authentication requirements, I/O capabilities, and 
+ * key distribution. It ensures that BLE connections are secure 
+ * with the desired pairing and bonding modes.
+ *
+ * @note This should be called after BLE stack initialization and 
+ * before starting advertising or accepting connections.
+ *
+ * @return None.
+ */
 static void security_initialization(void) {
     ble_hs_cfg.sm_io_cap = 3;
     ble_hs_cfg.sm_bonding = 1;
@@ -250,6 +306,19 @@ static void security_initialization(void) {
     ble_hs_cfg.sm_sc = 0;
 }
 
+/**
+ * @brief Main application entry point.
+ *
+ * This is the main entry function for the application. It initializes 
+ * system peripherals, BLE stack, UART, security configurations, GATT 
+ * server, and starts BLE advertising. It also creates necessary tasks 
+ * like BLE host task and UART event handling task.
+ *
+ * @note This function is automatically called by the ESP-IDF framework 
+ * after startup. It should never return.
+ *
+ * @return None.
+ */
 void app_main(void) {
 	int rc;
 

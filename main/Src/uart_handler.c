@@ -1,3 +1,12 @@
+/* USER CODE BEGIN Header */
+/**
+ ******************************************************************************
+ * @file           : uart_handler.c
+ * @brief          : Handle the UART functionality
+ ******************************************************************************
+ */
+/* USER CODE END Header */
+
 #include <stdint.h>
 #include <string.h>
 #include "freertos/FreeRTOS.h"
@@ -18,21 +27,6 @@ static const char *TAG = "UART";
 #define FW_FILE_CHUNK (128)
 #define BUFFER_SIZE (FW_FILE_CHUNK * BUF_SIZE) // 256KB
 
-// Global declaration (uses DRAM)
-static uart_write_state_t uart_state = UART_WRITE_START;
-static uint8_t global_buffer[BUFFER_SIZE];
-extern bool response_flag;
-extern bool config_request_flag;
-static bool header_packet_flag = true;
-static uint32_t data_read_length = 0;
-static uint32_t uart_write_index = 0;
-int uart_read_index = 0;
-
-static void uart_write_state_machine(uint8_t* data, uint32_t len);
-static void reset_uart_configuration(void);
-static void set_data_read_length(uint32_t length);
-static uint32_t get_data_read_length(void);
-
 #define RD_BUF_SIZE (BUF_SIZE)
 
 #define TXD_PIN ((gpio_num_t)GPIO_NUM_17)
@@ -40,9 +34,45 @@ static uint32_t get_data_read_length(void);
 #define RTS_PIN ((gpio_num_t)GPIO_NUM_19)
 #define CTS_PIN ((gpio_num_t)GPIO_NUM_20)
 
+#define BAUD_RATE (115200)
+
+#define FILE_SIZE (5488)
+#define CHUNK_SIZE (500)
+
+// #define APP
+
+// Global declaration (uses DRAM)
+static uart_write_state_t uart_state = UART_WRITE_START;
+static uint8_t global_buffer[BUFFER_SIZE];
+extern bool response_flag;
+extern bool config_request_flag;
+static uint32_t data_read_length = 0;
+static uint32_t uart_write_index = 0;
+int uart_read_index = 0;
+int current_offset = 0;
+int sent = 0;
+
+static void uart_write_state_machine(uint8_t* data, uint32_t len);
+static void reset_uart_configuration(void);
+static void set_data_read_length(uint32_t length);
+static uint32_t get_data_read_length(void);
+
 char dtmp[BUF_SIZE];
 static QueueHandle_t uart1_queue;
 
+/**
+ * @brief Fills a predefined buffer with junk (dummy) data.
+ *
+ * This function populates a buffer with dummy or test data, often 
+ * used for testing memory, simulating data transmissions, or 
+ * debugging. The fill pattern can be random, incremental, or a 
+ * constant pattern based on the implementation.
+ *
+ * @note The buffer and its size should be defined within the function 
+ * or globally. This function does not take parameters or return values.
+ *
+ * @return None.
+ */
 void junk_fill(void)
 {
     int counter = 0;
@@ -60,14 +90,22 @@ void junk_fill(void)
 }
 
 /**
- * @brief
- * @param
- * @return
- * */
+ * @brief Initializes the UART peripheral.
+ *
+ * This function configures and initializes the UART interface with 
+ * predefined settings such as baud rate, data bits, stop bits, parity, 
+ * and flow control. It prepares the UART for transmission and reception 
+ * of data.
+ *
+ * @note This function must be called before any UART send or receive 
+ * operations.
+ *
+ * @return None.
+ */
 void uart_initialization(void)
 {
     uart_config_t uart_config = {
-        .baud_rate = 115200,
+        .baud_rate = BAUD_RATE,
         .data_bits = UART_DATA_8_BITS,
         .parity = UART_PARITY_DISABLE,
         .stop_bits = UART_STOP_BITS_1,
@@ -80,14 +118,25 @@ void uart_initialization(void)
 
     // Set UART pins (using UART0 default pins ie no changes.)
     uart_set_pin(UART_PORT, TXD_PIN, RXD_PIN, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
-
-    // junk_fill();
+    #ifdef APP
+    junk_fill();
+    #endif
 }
 
+/**
+ * @brief Resets the variables used in UART.
+ *
+ * @param None
+ *
+ * @return None.
+ */
 static void reset_uart_configuration(void) {
     uart_write_index = 0;
     uart_state = UART_WRITE_START;
     uart_read_index = 0;
+    current_offset = 0;
+    sent = 0;
+    memset(global_buffer, '\0', sizeof(global_buffer));
 }
 
 /**
@@ -95,13 +144,14 @@ static void reset_uart_configuration(void) {
  * @param
  * @return
  * */
-#define FILE_SIZE (5488)
-#define CHUNK_SIZE (500)
-int current_offset = 0;
-int sent = 0;
+
 uint8_t *uart_read_data(uint32_t *length)
 {
+    #ifdef APP
+    int remaining = FILE_SIZE - current_offset;
+    #else
     int remaining = get_data_read_length() - current_offset;
+    #endif 
     int prev_offset = 0;
     int len = remaining > CHUNK_SIZE ? CHUNK_SIZE : remaining;
 
@@ -111,7 +161,12 @@ uint8_t *uart_read_data(uint32_t *length)
     *length = len;
     current_offset += len;
 
+    #ifdef APP
+    if (current_offset >= FILE_SIZE)
+    #else
     if (current_offset >= get_data_read_length())
+    #endif 
+    
     {
         current_offset = 0;
     }
@@ -119,16 +174,50 @@ uint8_t *uart_read_data(uint32_t *length)
     return &global_buffer[prev_offset];
 }
 
+/**
+ * @brief Sets the expected data read length.
+ *
+ * This function configures the length of data to be read in the 
+ * next read operation. It is typically used in protocols where 
+ * the amount of incoming data varies and needs to be set dynamically 
+ * before initiating a read.
+ *
+ * @param length   The number of bytes to read in the next read 
+ *                 or data reception operation.
+ *
+ * @return None.
+ */
 static void set_data_read_length(uint32_t length) {
     ESP_LOGI("SET DATA_LEN: ", "%ld", length);
     data_read_length = length;
 }
 
+/**
+ * @brief Retrieves the current expected data read length.
+ *
+ * This function returns the number of bytes previously configured 
+ * for the next data read operation using set_data_read_length().
+ * @param None
+ * @return  The expected data read length in bytes.
+ */
 static uint32_t get_data_read_length(void) {
     ESP_LOGI("SET DATA_LEN: ", "%ld", data_read_length);
     return data_read_length;
 }
 
+/**
+ * @brief UART write state machine to transmit data over UART.
+ *
+ * This function manages the UART transmission process using a state 
+ * machine approach. It handles chunked sending of large data buffers, 
+ * manages transmission states, and ensures proper sequencing of UART 
+ * data transfers.
+ *
+ * @param data   Pointer to the data buffer to transmit.
+ * @param len    Length of the data in bytes.
+ *
+ * @return None.
+ */
 static void uart_write_state_machine(uint8_t* data, uint32_t len) {
     error_code_t status = SUCCESS;
     
@@ -136,9 +225,14 @@ static void uart_write_state_machine(uint8_t* data, uint32_t len) {
     switch (uart_state) {
     case UART_WRITE_START:
         ESP_LOGI("TAG", "UART_WRITE_START");
+        for (int i = 0; i < 10; i++)
+        {
+            ESP_LOGI("RECV: ", "%X", data[i]);
+        }
         if (data[0] != START_BYTE) {
             ESP_LOGI("TAG", "ERROR");
             status = START_BYTE_ERROR;
+            uart_write_bytes(UART_PORT, &status, 1);
             uart_state = UART_WRITE_END;
             break;
         }
@@ -173,10 +267,17 @@ static void uart_write_state_machine(uint8_t* data, uint32_t len) {
 }
 
 /**
- * @brief
- * @param
- * @return
- * */
+ * @brief UART event handling task.
+ *
+ * This FreeRTOS task waits for UART events from the UART driver event queue, 
+ * such as data reception, buffer overflows, framing errors, or pattern detection. 
+ * It processes incoming UART data and handles error conditions as needed.
+ *
+ * @param pvParameters   Pointer to task parameters (typically NULL or 
+ *                       a UART configuration/context structure).
+ *
+ * @return None. This task runs indefinitely.
+ */
 void uart_event_task(void *pvParameters)
 {
     uart_event_t event;
@@ -238,10 +339,17 @@ void uart_event_task(void *pvParameters)
 }
 
 /**
- * @brief
- * @param
- * @return
- * */
+ * @brief Handles incoming data to send to UART.
+ *
+ * This function processes the received UART data buffer, parses commands, 
+ * verifies packet formats, or forwards the data for further handling. 
+ * It is typically invoked from the UART event task or a UART ISR context.
+ *
+ * @param data   Pointer to the UART data buffer.
+ *
+ * @return       0 if data is handled successfully,
+ *               non-zero error code if parsing or validation fails.
+ */
 int uart_data_handler(const uint8_t *data)
 {
     error_code_t status = ESP_OK;
@@ -284,7 +392,7 @@ int uart_data_handler(const uint8_t *data)
     case BLE_VERSION_REQUEST:
         ESP_LOGI(TAG, "Received: BLE_VERSION_REQUEST");
         response_flag = true;
-        status = uart_write_bytes(UART_PORT, (char *)&packet, (10 + packet.length));
+        // status = uart_write_bytes(UART_PORT, data, (10 + packet.length));
         break;
     case BLE_CONFIG_RESPONSE:
 

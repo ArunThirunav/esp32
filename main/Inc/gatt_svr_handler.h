@@ -1,3 +1,13 @@
+/* USER CODE BEGIN Header */
+/**
+ ******************************************************************************
+ * @file           : gatt_svr_handler.h
+ * @brief          : Header for gatt_svr_handler.c file.
+ *                   This file contains the common defines of the application.
+ ******************************************************************************
+ */
+/* USER CODE END Header */
+
 #ifndef GATT_SVR_HANDLER_H
 #define GATT_SVR_HANDLER_H
 

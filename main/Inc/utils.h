@@ -1,3 +1,12 @@
+/* USER CODE BEGIN Header */
+/**
+ ******************************************************************************
+ * @file           : utils.h
+ * @brief          : Header for utils.c file.
+ *                   This file contains the common defines of the application.
+ ******************************************************************************
+ */
+/* USER CODE END Header */
 #ifndef UTILS_H
 #define UTILS_H
 

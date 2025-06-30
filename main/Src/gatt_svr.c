@@ -1,21 +1,11 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
+/* USER CODE BEGIN Header */
+/**
+ ******************************************************************************
+ * @file           : gatt_svr.c
+ * @brief          : Handle the initialization of GATT service
+ ******************************************************************************
  */
+/* USER CODE END Header */
 
 #include "gatt_svr.h"
 #include "gatt_svr_handler.h"
@@ -87,6 +77,21 @@ static const struct ble_gatt_svc_def gatt_svr_svcs[] = {
     {0}
 };
 
+/**
+ * @brief GATT server registration callback.
+ *
+ * This callback is invoked by the NimBLE stack whenever a GATT service, 
+ * characteristic, or descriptor is registered. It can be used to log 
+ * handles, debug the GATT table, or perform additional setup tasks.
+ *
+ * @param ctxt   Pointer to the GATT registration context. Contains details 
+ *               about the type of object (service, characteristic, descriptor) 
+ *               being registered and its handles.
+ * @param arg    Optional user-defined argument passed during GATT server 
+ *               registration (can be NULL or a context pointer).
+ *
+ * @return       None
+ */
 void gatt_svr_register_cb(struct ble_gatt_register_ctxt *ctxt, void *arg) {
   char buf[BLE_UUID_STR_LEN];
 
@@ -117,6 +122,17 @@ void gatt_svr_register_cb(struct ble_gatt_register_ctxt *ctxt, void *arg) {
   }
 }
 
+/**
+ * @brief Initializes the GATT server.
+ *
+ * This function initializes the GATT server by configuring and adding 
+ * services, characteristics, and descriptors to the BLE stack. It prepares 
+ * the BLE peripheral to accept connections and respond to GATT operations 
+ * such as reads, writes, and notifications.
+ *
+ * @return  0 on success,
+ *          non-zero error code if initialization fails.
+ */
 int gatt_svr_init(void) {
   int rc;
 

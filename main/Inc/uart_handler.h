@@ -1,3 +1,12 @@
+/* USER CODE BEGIN Header */
+/**
+ ******************************************************************************
+ * @file           : uart_handler.h
+ * @brief          : Header for uart_handler.c file.
+ *                   This file contains the common defines of the application.
+ ******************************************************************************
+ */
+/* USER CODE END Header */
 #ifndef UART_HANDLER_H
 #define UART_HANDLER_H
 

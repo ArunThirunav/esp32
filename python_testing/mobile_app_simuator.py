@@ -2,10 +2,14 @@ import asyncio
 from bleak import BleakClient
 import sys
 
-BLE_DEVICE_ADDRESS = "A0:85:E3:F1:87:CE"  # Replace with your ESP32's MAC
+# BLE_DEVICE_ADDRESS = "A0:85:E3:F1:87:CE"  # Replace with your ESP32's MAC
+BLE_DEVICE_ADDRESS = "A0:85:E3:F0:FB:82"  # Replace with your ESP32's MAC
+# BLE_DEVICE_ADDRESS = "A0:85:E3:F1:8F:2A"  # Replace with your ESP32's MAC
+
+
 WRITE_CHAR_UUID = "A2BD0013-AD84-44BE-94BB-B289C6D34F32"
 READ_CHAR_UUID = "A2BD0012-AD84-44BE-94BB-B289C6D34F32"
-CHUNK_SIZE = 510
+CHUNK_SIZE = 500
 TOTAL_SIZE = 5312
 
 ack_event = asyncio.Event()

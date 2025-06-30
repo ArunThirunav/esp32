@@ -1,3 +1,12 @@
+/* USER CODE BEGIN Header */
+/**
+ ******************************************************************************
+ * @file           : crc.h
+ * @brief          : Header for crc.c file.
+ *                   This file contains the common defines of the application.
+ ******************************************************************************
+ */
+/* USER CODE END Header */
 #ifndef CRC_H
 #define CRC_H
 
