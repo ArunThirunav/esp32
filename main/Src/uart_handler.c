@@ -225,10 +225,6 @@ static void uart_write_state_machine(uint8_t* data, uint32_t len) {
     switch (uart_state) {
     case UART_WRITE_START:
         ESP_LOGI("TAG", "UART_WRITE_START");
-        for (int i = 0; i < 10; i++)
-        {
-            ESP_LOGI("RECV: ", "%X", data[i]);
-        }
         if (data[0] != START_BYTE) {
             ESP_LOGI("TAG", "ERROR");
             status = START_BYTE_ERROR;
@@ -238,12 +234,12 @@ static void uart_write_state_machine(uint8_t* data, uint32_t len) {
         }
         else {
             uint32_t length = byte_array_to_u32_little_endian(&data[2]);
-            ESP_LOGI("TAG", "%ld", length);
+            ESP_LOGI("LENGTH", "%ld", length);
             set_data_read_length(length);
             uart_state = UART_WRITE_DATA;
         }
         memcpy(global_buffer+uart_write_index, &data[6], (len - 6));
-        uart_write_index += len;
+        uart_write_index += len - 6;
         break;
     case UART_WRITE_DATA:
         if (get_data_read_length() <= uart_write_index) {

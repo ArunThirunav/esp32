@@ -2,8 +2,8 @@ import asyncio
 from bleak import BleakClient
 import sys
 
-# BLE_DEVICE_ADDRESS = "A0:85:E3:F1:87:CE"  # Replace with your ESP32's MAC
-BLE_DEVICE_ADDRESS = "A0:85:E3:F0:FB:82"  # Replace with your ESP32's MAC
+BLE_DEVICE_ADDRESS = "A0:85:E3:F1:87:CE"  # Replace with your ESP32's MAC
+# BLE_DEVICE_ADDRESS = "A0:85:E3:F0:FB:82"  # Replace with your ESP32's MAC
 # BLE_DEVICE_ADDRESS = "A0:85:E3:F1:8F:2A"  # Replace with your ESP32's MAC
 
 
@@ -56,7 +56,13 @@ async def send_request(byte_array, crc):
             if len(chunk) < CHUNK_SIZE:
                 print("Received chunk smaller than expected — assuming end of data.")
                 break
-
+        
+        new_list = received_data[6:-4]
+        hex_list = [hex(b) for b in new_list]
+        # print(hex_list)
+        for i in range(0, len(hex_list), 10):
+            print(hex_list[i:i+10])
+        print("Length: ", len(hex_list))
         print(f"Total received: {len(received_data)} bytes")
         print(f"Data (hex): {received_data.hex()[:100]}...")  # Print first 50 bytes as hex
 

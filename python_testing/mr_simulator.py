@@ -3,12 +3,12 @@ import time
 import os
 
 # UART configuration
-# PORT = "/dev/ttyUSB0"   # Change to "COMx" for Windows
-PORT = "COM10"
+PORT = "/dev/ttyUSB0"   # Change to "COMx" for Windows
+# PORT = "COM10"
 BAUDRATE = 115200
 TIMEOUT = 1000            # seconds
 TRIGGER_PACKET_SIZE = 10
-RESPONSE_SIZE = 10    # 5 KB
+RESPONSE_SIZE = 5312    # 5 KB
 
 version_req = [0xA5, 0x52, 0x00, 0x00, 0x00, 0x00, 0xBA, 0xC0, 0xBD, 0x55]
 config_req = [0xA5, 0x50, 0x00, 0x00, 0x00, 0x00, 0xC0, 0x00, 0xEE, 0x35]
@@ -57,12 +57,18 @@ def main():
         print(f"Listening on {PORT} for 10-byte trigger...")
 
         # Prepare 5 KB buffer (example: repeating pattern or random)
-        response_data = [0xA5, 0x51, 0x0A, 0x00, 0x00, 0x00]
+        byte_array = RESPONSE_SIZE.to_bytes(4, byteorder='little')
+        result = list(byte_array)
+        response_data = [0xA5, 0x51]
+        response_data += result
         response_data += bytearray(os.urandom(RESPONSE_SIZE))  # or b'\xAA' * 5120
-        print([hex(num) for num in response_data])
-        print("\n\n")
+
         response_data += crc32_iso(response_data).to_bytes(4, byteorder='big')
-        print([hex(num) for num in response_data])
+        new_list = response_data[6:-4]
+        hex_list = [hex(num) for num in new_list]
+        for i in range(0, len(hex_list), 10):
+            print(hex_list[i:i+10])
+        print("Length: ", len(new_list))
 
         while True:
             packet = wait_for_packet(ser, TRIGGER_PACKET_SIZE, TIMEOUT)
