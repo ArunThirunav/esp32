@@ -9,6 +9,8 @@
 
 #include <stdint.h>
 #include <string.h>
+#include "host/ble_hs.h"
+#include "host/ble_uuid.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/queue.h"
@@ -57,8 +59,12 @@ static void reset_uart_configuration(void);
 static void set_data_read_length(uint32_t length);
 static uint32_t get_data_read_length(void);
 
+extern void notify_client(uint16_t conn_handle, uint16_t attr_handle, uint8_t err_code);
+
 char dtmp[BUF_SIZE];
 static QueueHandle_t uart1_queue;
+static uint16_t connection_hndl = 0;
+extern uint16_t notify_config_handle;
 
 /**
  * @brief Fills a predefined buffer with junk (dummy) data.
@@ -87,6 +93,14 @@ void junk_fill(void)
     // for (int i = 0; i < 5000; i++) {
     // 	printf("%d", global_buffer[i]);
     // }
+}
+
+void set_connection_handle(uint16_t hndl) {
+    connection_hndl = hndl;
+}
+
+uint16_t get_connection_handle(void) {
+    return connection_hndl;
 }
 
 /**
@@ -201,8 +215,38 @@ static void set_data_read_length(uint32_t length) {
  * @return  The expected data read length in bytes.
  */
 static uint32_t get_data_read_length(void) {
-    ESP_LOGI("SET DATA_LEN: ", "%ld", data_read_length);
+    // ESP_LOGI("GET DATA_LEN: ", "%ld", data_read_length);
     return data_read_length;
+}
+
+void send_config_file()
+{
+    uint8_t temp[517];
+    uint32_t crc_calc;
+    uint32_t length;
+    uint16_t conn_hndl = 0;
+    struct os_mbuf *om;
+    while (1){
+        memset(temp, '\0', sizeof(temp));
+        temp[0] = START_BYTE;
+        temp[1] = BLE_CONFIG_RESPONSE;
+        const uint8_t *resp = uart_read_data(&length);
+        u32_to_byte_array_little_endian(&temp[2], length);
+        memcpy(&temp[6], resp, (length));
+        crc_calc = crc32(temp, (length) + 6);
+        u32_to_byte_array_little_endian(&temp[6 + (length)], crc_calc);
+        length += 10;
+        ESP_LOGI("NOTIFY", "%ld", length);
+        conn_hndl = get_connection_handle();
+        om = ble_hs_mbuf_from_flat(&temp, length);
+        ble_gattc_notify_custom(conn_hndl, 
+                                     notify_config_handle, 
+                                     om);
+        if(length < 510){
+            break;
+        }
+        vTaskDelay(pdMS_TO_TICKS(200));
+    }
 }
 
 /**
@@ -220,6 +264,9 @@ static uint32_t get_data_read_length(void) {
  */
 static void uart_write_state_machine(uint8_t* data, uint32_t len) {
     error_code_t status = SUCCESS;
+
+    uint8_t temp[600];
+    memcpy(temp, data, len);
     
     ESP_LOGI("TAG", "%d", uart_state);
     switch (uart_state) {
@@ -234,14 +281,17 @@ static void uart_write_state_machine(uint8_t* data, uint32_t len) {
         }
         else {
             uint32_t length = byte_array_to_u32_little_endian(&data[2]);
+            
             ESP_LOGI("LENGTH", "%ld", length);
             set_data_read_length(length);
             uart_state = UART_WRITE_DATA;
         }
-        memcpy(global_buffer+uart_write_index, &data[6], (len - 6));
-        uart_write_index += len - 6;
+        memcpy(global_buffer+uart_write_index, &data[6], (len - 6));        
+        uart_write_index += (len - 6);
+        ESP_LOGI("UART_WRITE_INDEX", "%ld", uart_write_index);
         break;
     case UART_WRITE_DATA:
+        ESP_LOGI("UART_WRITE_INDEX", "%ld", uart_write_index);
         if (get_data_read_length() <= uart_write_index) {
             ESP_LOGI("TAG", "COMPLETED");
             uart_write_index = 0;
@@ -252,6 +302,11 @@ static void uart_write_state_machine(uint8_t* data, uint32_t len) {
             uart_write_index += len;
             ESP_LOGI("BYTES RECEIVED: ", "%ld", uart_write_index);
         }
+        if (uart_write_index >= get_data_read_length()) {
+            ESP_LOGI("CONNECTION COMPLETE", "SEND NOTIFICATION");
+            send_config_file();
+        }
+        
         break;
     case UART_WRITE_END:
         ESP_LOGI("TAG", "UART_WRITE_END");
@@ -284,18 +339,18 @@ void uart_event_task(void *pvParameters)
         // Waiting for UART event.
         if (xQueueReceive(uart1_queue, (void *)&event, (TickType_t)portMAX_DELAY))
         {
-            ESP_LOGI(TAG, "uart[%d] event", UART_PORT);
+            // ESP_LOGI(TAG, "uart[%d] event", UART_PORT);
             switch (event.type)
             {
             /* UART DATA EVENT */
             case UART_DATA:
-                ESP_LOGI(TAG, "[UART DATA]: %d", event.size);
+                // ESP_LOGI(TAG, "[UART DATA]: %d", event.size);
                 uart_read_bytes(UART_PORT, dtmp, event.size, (TickType_t)portMAX_DELAY);
                 uart_write_state_machine((uint8_t*)dtmp, event.size);
                 // memcpy(global_buffer + uart_read_index, dtmp, event.size);
                 uart_read_index += event.size;
                 uart_get_buffered_data_len(UART_PORT, &buffered_size);
-                ESP_LOGI(TAG, "[DATA INDEX]: %d and %d", uart_read_index, buffered_size);
+                // ESP_LOGI(TAG, "[DATA INDEX]: %d and %d", uart_read_index, buffered_size);
                 break;
             /* UART DATA BREAK EVENT */
             case UART_DATA_BREAK:

@@ -1,10 +1,15 @@
 import asyncio
 from bleak import BleakClient
 import sys
+import time
 
-BLE_DEVICE_ADDRESS = "A0:85:E3:F1:87:CE"  # Replace with your ESP32's MAC
+# BLE_DEVICE_ADDRESS = "A0:85:E3:F1:87:CE"  # Replace with your ESP32's MAC
 # BLE_DEVICE_ADDRESS = "A0:85:E3:F0:FB:82"  # Replace with your ESP32's MAC
 # BLE_DEVICE_ADDRESS = "A0:85:E3:F1:8F:2A"  # Replace with your ESP32's MAC
+BLE_DEVICE_ADDRESS = "A0:85:E3:F0:76:16"  # Replace with your ESP32's MAC
+# BLE_DEVICE_ADDRESS = "A0:85:E3:F1:8C:C6"  # Replace with your ESP32's MAC
+
+
 
 
 WRITE_CHAR_UUID = "A2BD0013-AD84-44BE-94BB-B289C6D34F32"
@@ -44,14 +49,15 @@ async def send_request(byte_array, crc):
     print(byte_array)
     async with BleakClient(BLE_DEVICE_ADDRESS) as client:
         await client.write_gatt_char(WRITE_CHAR_UUID, byte_array)
-        print(f"Sent {len(byte_array)} bytes.")
+        # print(f"Sent {len(byte_array)} bytes.")
+        time.sleep(5)
         index = 0
         received_data = bytearray()
         while len(received_data) < TOTAL_SIZE:
             chunk = await client.read_gatt_char(READ_CHAR_UUID)
             received_data.extend(chunk)
             index += 1
-            print(f"Packet#{index}Read {len(chunk)} bytes, Total: {len(received_data)} bytes")
+            # print(f"Packet#{index}Read {len(chunk)} bytes, Total: {len(received_data)} bytes")
 
             if len(chunk) < CHUNK_SIZE:
                 print("Received chunk smaller than expected — assuming end of data.")

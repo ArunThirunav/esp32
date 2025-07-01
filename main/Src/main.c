@@ -115,7 +115,7 @@ static int ble_gap_event(struct ble_gap_event *event, void *arg) {
 			assert(rc == 0);
 		}
 		MODLOG_DFLT(INFO, "\n");
-
+		set_connection_handle(event->link_estab.conn_handle);
 		if (event->link_estab.status != 0)
 		{
 			/* Connection failed; resume advertising. */
@@ -126,7 +126,7 @@ static int ble_gap_event(struct ble_gap_event *event, void *arg) {
 	case BLE_GAP_EVENT_DISCONNECT:
 		MODLOG_DFLT(INFO, "disconnect; reason=%d ", event->disconnect.reason);
 		MODLOG_DFLT(INFO, "\n");
-
+		set_connection_handle(0);
 		/* Connection terminated; resume advertising. */
 		ble_advertisement();
 		return 0;
@@ -349,15 +349,13 @@ void app_main(void) {
 	assert(rc == 0);
 
 	/* Set the default device name. */
-	rc = ble_svc_gap_device_name_set("CT Car 3");
+	rc = ble_svc_gap_device_name_set("CT Car 2");
 	assert(rc == 0);
 
 	/* XXX Need to have template for store */
 	ble_store_config_init();
 
-	uart_initialization();
-	// Create a task to handler UART event from ISR
-	xTaskCreate(uart_event_task, "uart_event_task", 3 * 1024, NULL, 3, NULL);
+	xTaskCreate(uart_event_task, "uart_event_task", 10 * 1024, NULL, 3, NULL);
 
 	nimble_port_freertos_init(ble_host_task);
 }

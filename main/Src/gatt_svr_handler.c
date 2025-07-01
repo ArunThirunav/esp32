@@ -12,7 +12,7 @@
 #include "uart_handler.h"
 #include "config_file_handle.h"
 
-static void notify_client(uint16_t conn_handle, uint16_t attr_handle, uint8_t err_code);
+void notify_client(uint16_t conn_handle, uint16_t attr_handle, uint8_t err_code);
 volatile bool response_flag = false;
 volatile bool config_request_flag = false;
 uint8_t version_request[42] = { 0xA5,
@@ -114,7 +114,7 @@ int config_file_read_cb(uint16_t conn_handle, uint16_t attr_handle,
 
 	const uint8_t *temp = get_config_file(&length);
 
-	ESP_LOGI("BLE", "Read Callback bytes: %ld", length);
+	ESP_LOGI("BLE", "config_file_read_cb bytes: %ld", length);
 	os_mbuf_append(ctxt->om, temp, length);
 	/* 500 Bytes for Config File and 10 bytes incl. start, packType, len and crc*/
 	if (length < 510)
@@ -161,6 +161,8 @@ int request_response_cb(uint16_t conn_handle, uint16_t attr_handle,
 		break;
 	case BLE_GATT_ACCESS_OP_WRITE_CHR:
 		status = uart_data_handler(data);
+		ESP_LOGI("conn_handle", "%d", conn_handle);
+		ESP_LOGI("attr_handle", "%d", attr_handle);
 		notify_client(conn_handle, attr_handle, status);
 		break;
 	default:
@@ -211,7 +213,7 @@ int file_descriptor_read_cb(uint16_t conn_handle, uint16_t attr_handle,
  *
  * @return               None
  */
-static void notify_client(uint16_t conn_handle, uint16_t attr_handle, uint8_t err_code)
+void notify_client(uint16_t conn_handle, uint16_t attr_handle, uint8_t err_code)
 {
 	int rt = err_code;
 	struct os_mbuf *om = ble_hs_mbuf_from_flat(&rt, 1);

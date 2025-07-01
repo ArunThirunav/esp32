@@ -77,5 +77,7 @@ void uart_initialization(void);
 int uart_data_handler(const uint8_t* data);
 uint8_t* uart_read_data(uint32_t* length);
 void uart_event_task(void *pvParameters);
+void set_connection_handle(uint16_t hndl);
+uint16_t get_connection_handle(void);
 
 #endif /* END OF UART_HANDLER_H */

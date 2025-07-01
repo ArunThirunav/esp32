@@ -12,7 +12,7 @@
 #include "utils.h"
 #include <string.h>
 #define BLE_MTU (517)
-uint8_t temp[BLE_MTU];
+static uint8_t temp[BLE_MTU];
 
 /**
  * @brief Retrieves the configuration file data.

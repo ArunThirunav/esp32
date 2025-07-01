@@ -3,8 +3,8 @@ import time
 import os
 
 # UART configuration
-PORT = "/dev/ttyUSB0"   # Change to "COMx" for Windows
-# PORT = "COM10"
+# PORT = "/dev/ttyUSB0"   # Change to "COMx" for Windows
+PORT = "COM10"
 BAUDRATE = 115200
 TIMEOUT = 1000            # seconds
 TRIGGER_PACKET_SIZE = 10
