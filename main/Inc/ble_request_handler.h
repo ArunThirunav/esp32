@@ -1,8 +1,8 @@
 /* USER CODE BEGIN Header */
 /**
  ******************************************************************************
- * @file           : config_file_handle.h
- * @brief          : Header for config_file_handle.c file.
+ * @file           : ble_request_handler.h
+ * @brief          : Header for ble_request_handler.c file.
  *                   This file contains the common defines of the application.
  ******************************************************************************
  */
@@ -14,6 +14,6 @@
 #include <stdint.h>
 #include "uart_handler.h"
 
-uint8_t* get_config_file(uint32_t* length);
+int ble_request_handler(const uint8_t *data);
 
 #endif /* END OF CONFIG_HANDLE_H*/

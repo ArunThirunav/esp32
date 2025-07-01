@@ -10,53 +10,23 @@
 #include <inttypes.h>
 #include "gatt_svr_handler.h"
 #include "uart_handler.h"
-#include "config_file_handle.h"
+#include "ble_request_handler.h"
+#include "utility.h"
+
+/* DEFINES */
 
 void notify_client(uint16_t conn_handle, uint16_t attr_handle, uint8_t err_code);
-volatile bool response_flag = false;
-volatile bool config_request_flag = false;
-uint8_t version_request[42] = { 0xA5,
-	0x53,
-	0x00,
-	0x00,
-	0x00,
-	0x20,
-	0x00,
-	0x00,
-	0x01,
-	0x00, /* MRA */
-	0x00,
-	0x00,
-	0x01,
-	0x00, /* MRB */
-	0x00,
-	0x00,
-	0x01,
-	0x00, /* CTA */
-	0x00,
-	0x00,
-	0x01,
-	0x00, /* CTB */
-	0x00,
-	0x00,
-	0x01,
-	0x00, /* COP*/
-	0x00,
-	0x00,
-	0x01,
-	0x00, /* MRUI */
-	0x00,
-	0x00,
-	0x01,
-	0x00, /* CTUI */
-	0x00,
-	0x00,
-	0x01,
-	0x00, /* COPUI */
-	0xD3,
-	0xA2,
-	0x1A,
-	0x71,
+uint8_t version_request[42] = {
+    0xA5, 0x53, 0x00, 0x00, 0x00, 0x20, 						/* START_BYTE, PACKET_TYPE, LENGTH */
+	0x00, 0x00, 0x01, 0x00, 									/* MRA */
+    0x00, 0x00, 0x01, 0x00,                                     /* MRB */
+    0x00, 0x00, 0x01, 0x00,                                     /* CTA */
+    0x00, 0x00, 0x01, 0x00,                                     /* CTB */
+    0x00, 0x00, 0x01, 0x00,                                     /* COP*/
+    0x00, 0x00, 0x01, 0x00,                                     /* MRUI */
+    0x00, 0x00, 0x01, 0x00,                                     /* CTUI */
+    0x00, 0x00, 0x01, 0x00,                                     /* COPUI */
+    0xD3, 0xA2, 0x1A, 0x71,
 };
 
 /**
@@ -79,7 +49,7 @@ uint8_t version_request[42] = { 0xA5,
 int file_transfer_write_cb(uint16_t conn_handle, uint16_t attr_handle,
 						   struct ble_gatt_access_ctxt *ctxt, void *arg)
 {
-	// Simulate writing to file
+	/* TODO: HANDLE THE FW CHUNK SAVE TO FLASH */
 	ESP_LOGI("BLE", "Received chunk of bytes");
 	return 0;
 }
@@ -105,23 +75,7 @@ int file_transfer_write_cb(uint16_t conn_handle, uint16_t attr_handle,
 int config_file_read_cb(uint16_t conn_handle, uint16_t attr_handle,
 						struct ble_gatt_access_ctxt *ctxt, void *arg)
 {
-	uint32_t length = 0;
-	if (config_request_flag == false)
-	{
-		notify_client(conn_handle, attr_handle, REQUEST_PACKET_NOT_RECEIVED);
-		return 0;
-	}
-
-	const uint8_t *temp = get_config_file(&length);
-
-	ESP_LOGI("BLE", "config_file_read_cb bytes: %ld", length);
-	os_mbuf_append(ctxt->om, temp, length);
-	/* 500 Bytes for Config File and 10 bytes incl. start, packType, len and crc*/
-	if (length < 510)
-	{
-		config_request_flag = false;
-		notify_client(conn_handle, attr_handle, BLE_ACK);
-	}
+	ESP_LOGI("READ CONFIG: ", "CHARACTERISTICS");
 	return 0;
 }
 
@@ -147,20 +101,17 @@ int request_response_cb(uint16_t conn_handle, uint16_t attr_handle,
 						struct ble_gatt_access_ctxt *ctxt, void *arg)
 {
 
-	error_code_t status = SUCCESS;
-
+	error_code_t status = BLE_ACK;
 	const uint8_t *data = ctxt->om->om_data;
-
 	/* CHANGE BASED ON READ WRITE */
 	switch (ctxt->op)
 	{
 	case BLE_GATT_ACCESS_OP_READ_CHR:
 		ESP_LOGI("BLE", "Read Response");
-		response_flag = false;
 		os_mbuf_append(ctxt->om, version_request, sizeof(version_request));
 		break;
 	case BLE_GATT_ACCESS_OP_WRITE_CHR:
-		status = uart_data_handler(data);
+		status = ble_request_handler(data);
 		ESP_LOGI("conn_handle", "%d", conn_handle);
 		ESP_LOGI("attr_handle", "%d", attr_handle);
 		notify_client(conn_handle, attr_handle, status);

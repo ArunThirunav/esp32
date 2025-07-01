@@ -10,8 +10,11 @@
 #include "crc.h"
 #include "esp_log.h"
 
+/* DEFINES */
 #define CRC_MASK            (0xFFFFFFFF)
 #define POLYNOMIAL          (0x04C11DB7)
+
+/* VARIABLES */
 
 /* FUNCTION PROTOTYPE */
 static uint32_t reflect(uint32_t data, int bits);
@@ -67,7 +70,6 @@ uint32_t crc32(const uint8_t *data, uint32_t length) {
     }
 
     crc = reflect(crc, 32);
-    ESP_LOGI("CRC", "0x%2X", (int)(crc^0xFFFFFFFF));
     return crc ^ 0xFFFFFFFF;
 }
 

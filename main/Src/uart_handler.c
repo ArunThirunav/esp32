@@ -19,17 +19,15 @@
 #include "esp_log.h"
 #include "uart_handler.h"
 #include "crc.h"
-#include "utils.h"
+#include "utility.h"
+#include "ble_response_handler.h"
 
 static const char *TAG = "UART";
 #define UART_PORT UART_NUM_1
 
 // In your header file or at top of C file
-#define BUF_SIZE (1024)
-#define FW_FILE_CHUNK (128)
-#define BUFFER_SIZE (FW_FILE_CHUNK * BUF_SIZE) // 256KB
 
-#define RD_BUF_SIZE (BUF_SIZE)
+#define RD_BUF_SIZE (1024)
 
 #define TXD_PIN ((gpio_num_t)GPIO_NUM_17)
 #define RXD_PIN ((gpio_num_t)GPIO_NUM_18)
@@ -39,69 +37,19 @@ static const char *TAG = "UART";
 #define BAUD_RATE (115200)
 
 #define FILE_SIZE (5488)
-#define CHUNK_SIZE (500)
 
-// #define APP
-
-// Global declaration (uses DRAM)
-static uart_write_state_t uart_state = UART_WRITE_START;
-static uint8_t global_buffer[BUFFER_SIZE];
-extern bool response_flag;
-extern bool config_request_flag;
-static uint32_t data_read_length = 0;
-static uint32_t uart_write_index = 0;
+static uart_write_state_t uart_state = UART_READ_START;
 int uart_read_index = 0;
-int current_offset = 0;
-int sent = 0;
 
-static void uart_write_state_machine(uint8_t* data, uint32_t len);
-static void reset_uart_configuration(void);
-static void set_data_read_length(uint32_t length);
-static uint32_t get_data_read_length(void);
+/* FUNCTION PROTOTYPE */
+static void uart_read_state_machine(uint8_t* data, uint32_t len);
+static void initialize_uart_vars(void);
+
 
 extern void notify_client(uint16_t conn_handle, uint16_t attr_handle, uint8_t err_code);
 
-char dtmp[BUF_SIZE];
+char dtmp[RD_BUF_SIZE];
 static QueueHandle_t uart1_queue;
-static uint16_t connection_hndl = 0;
-extern uint16_t notify_config_handle;
-
-/**
- * @brief Fills a predefined buffer with junk (dummy) data.
- *
- * This function populates a buffer with dummy or test data, often 
- * used for testing memory, simulating data transmissions, or 
- * debugging. The fill pattern can be random, incremental, or a 
- * constant pattern based on the implementation.
- *
- * @note The buffer and its size should be defined within the function 
- * or globally. This function does not take parameters or return values.
- *
- * @return None.
- */
-void junk_fill(void)
-{
-    int counter = 0;
-    memset(global_buffer, '\0', sizeof(global_buffer));
-    for (int i = 0; i < 20; i++)
-    {
-        for (int j = 0; j < 500; j++)
-        {
-            global_buffer[counter++] = 65 + i;
-        }
-    }
-    // for (int i = 0; i < 5000; i++) {
-    // 	printf("%d", global_buffer[i]);
-    // }
-}
-
-void set_connection_handle(uint16_t hndl) {
-    connection_hndl = hndl;
-}
-
-uint16_t get_connection_handle(void) {
-    return connection_hndl;
-}
 
 /**
  * @brief Initializes the UART peripheral.
@@ -127,14 +75,11 @@ void uart_initialization(void)
         .source_clk = UART_SCLK_DEFAULT,
     };
     // Install UART driver, and get the queue.
-    uart_driver_install(UART_PORT, BUF_SIZE * 15, BUF_SIZE * 2, 80, &uart1_queue, 0);
+    uart_driver_install(UART_PORT, RD_BUF_SIZE * 15, RD_BUF_SIZE * 2, 80, &uart1_queue, 0);
     uart_param_config(UART_PORT, &uart_config);
 
     // Set UART pins (using UART0 default pins ie no changes.)
     uart_set_pin(UART_PORT, TXD_PIN, RXD_PIN, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
-    #ifdef APP
-    junk_fill();
-    #endif
 }
 
 /**
@@ -144,109 +89,9 @@ void uart_initialization(void)
  *
  * @return None.
  */
-static void reset_uart_configuration(void) {
-    uart_write_index = 0;
-    uart_state = UART_WRITE_START;
+static void initialize_uart_vars(void) {
+    uart_state = UART_READ_START;
     uart_read_index = 0;
-    current_offset = 0;
-    sent = 0;
-    memset(global_buffer, '\0', sizeof(global_buffer));
-}
-
-/**
- * @brief
- * @param
- * @return
- * */
-
-uint8_t *uart_read_data(uint32_t *length)
-{
-    #ifdef APP
-    int remaining = FILE_SIZE - current_offset;
-    #else
-    int remaining = get_data_read_length() - current_offset;
-    #endif 
-    int prev_offset = 0;
-    int len = remaining > CHUNK_SIZE ? CHUNK_SIZE : remaining;
-
-    ESP_LOGI("READ: ", "Sent: %d", sent += len);
-
-    prev_offset = current_offset;
-    *length = len;
-    current_offset += len;
-
-    #ifdef APP
-    if (current_offset >= FILE_SIZE)
-    #else
-    if (current_offset >= get_data_read_length())
-    #endif 
-    
-    {
-        current_offset = 0;
-    }
-
-    return &global_buffer[prev_offset];
-}
-
-/**
- * @brief Sets the expected data read length.
- *
- * This function configures the length of data to be read in the 
- * next read operation. It is typically used in protocols where 
- * the amount of incoming data varies and needs to be set dynamically 
- * before initiating a read.
- *
- * @param length   The number of bytes to read in the next read 
- *                 or data reception operation.
- *
- * @return None.
- */
-static void set_data_read_length(uint32_t length) {
-    ESP_LOGI("SET DATA_LEN: ", "%ld", length);
-    data_read_length = length;
-}
-
-/**
- * @brief Retrieves the current expected data read length.
- *
- * This function returns the number of bytes previously configured 
- * for the next data read operation using set_data_read_length().
- * @param None
- * @return  The expected data read length in bytes.
- */
-static uint32_t get_data_read_length(void) {
-    // ESP_LOGI("GET DATA_LEN: ", "%ld", data_read_length);
-    return data_read_length;
-}
-
-void send_config_file()
-{
-    uint8_t temp[517];
-    uint32_t crc_calc;
-    uint32_t length;
-    uint16_t conn_hndl = 0;
-    struct os_mbuf *om;
-    while (1){
-        memset(temp, '\0', sizeof(temp));
-        temp[0] = START_BYTE;
-        temp[1] = BLE_CONFIG_RESPONSE;
-        const uint8_t *resp = uart_read_data(&length);
-        u32_to_byte_array_little_endian(&temp[2], length);
-        memcpy(&temp[6], resp, (length));
-        crc_calc = crc32(temp, (length) + 6);
-        u32_to_byte_array_little_endian(&temp[6 + (length)], crc_calc);
-        length += 10;
-        ESP_LOGI("NOTIFY", "%ld", length);
-        conn_hndl = get_connection_handle();
-        om = ble_hs_mbuf_from_flat(&temp, length);
-        ble_gattc_notify_custom(conn_hndl, 
-                                     notify_config_handle, 
-                                     om);
-        if(length < 510){
-            break;
-        }
-        vTaskDelay(pdMS_TO_TICKS(200));
-    }
 }
 
 /**
@@ -262,57 +107,43 @@ void send_config_file()
  *
  * @return None.
  */
-static void uart_write_state_machine(uint8_t* data, uint32_t len) {
+static void uart_read_state_machine(uint8_t* data, uint32_t len) {
     error_code_t status = SUCCESS;
-
-    uint8_t temp[600];
-    memcpy(temp, data, len);
     
-    ESP_LOGI("TAG", "%d", uart_state);
+    ESP_LOGI("UART_READ: ", "%d", uart_state);
     switch (uart_state) {
-    case UART_WRITE_START:
-        ESP_LOGI("TAG", "UART_WRITE_START");
-        if (data[0] != START_BYTE) {
-            ESP_LOGI("TAG", "ERROR");
+    case UART_READ_START:
+        ESP_LOGI("UART_READ: ", "UART_READ_START");
+        if (data[0] != START_BYTE) 
+        {
+            ESP_LOGI("UART_READ: ", "ERROR");
             status = START_BYTE_ERROR;
             uart_write_bytes(UART_PORT, &status, 1);
-            uart_state = UART_WRITE_END;
+            uart_state = UART_READ_END;
             break;
         }
-        else {
-            uint32_t length = byte_array_to_u32_little_endian(&data[2]);
-            
-            ESP_LOGI("LENGTH", "%ld", length);
-            set_data_read_length(length);
-            uart_state = UART_WRITE_DATA;
-        }
-        memcpy(global_buffer+uart_write_index, &data[6], (len - 6));        
-        uart_write_index += (len - 6);
-        ESP_LOGI("UART_WRITE_INDEX", "%ld", uart_write_index);
+        switch (data[1])
+        {
+        case BLE_CONFIG_RESPONSE:
+        case BLE_VERSION_RESPONSE:
+            set_data_read_length(byte_array_to_u32_little_endian(&data[2]));
+            reset_buffer_variables();
+            store_config_file(&data[6], (len-6));
+            uart_state = UART_READ_DATA;
+            /* TODO: CAN BE IMPLEMENTED ONCE IMPLEMENTATION DONE IN NEXUS*/
+            break;
+        default:
+            status = INVALID_PACKET_ERROR;
+            uart_write_bytes(UART_PORT, &status, 1);
+            uart_state = UART_READ_START;
+            break;
+        }          
         break;
-    case UART_WRITE_DATA:
-        ESP_LOGI("UART_WRITE_INDEX", "%ld", uart_write_index);
-        if (get_data_read_length() <= uart_write_index) {
-            ESP_LOGI("TAG", "COMPLETED");
-            uart_write_index = 0;
-            uart_state = UART_WRITE_END;
-        }
-        else{
-            memcpy(global_buffer+uart_write_index, data, len);
-            uart_write_index += len;
-            ESP_LOGI("BYTES RECEIVED: ", "%ld", uart_write_index);
-        }
-        if (uart_write_index >= get_data_read_length()) {
-            ESP_LOGI("CONNECTION COMPLETE", "SEND NOTIFICATION");
-            send_config_file();
-        }
-        
-        break;
-    case UART_WRITE_END:
-        ESP_LOGI("TAG", "UART_WRITE_END");
-        uart_state = UART_WRITE_START;
+    case UART_READ_DATA:
+        store_config_file(data, len);
         break;
     default:
+        ESP_LOGI("UART_READ: : ", "UART_READ_END");
         break;
     }
 }
@@ -339,18 +170,16 @@ void uart_event_task(void *pvParameters)
         // Waiting for UART event.
         if (xQueueReceive(uart1_queue, (void *)&event, (TickType_t)portMAX_DELAY))
         {
-            // ESP_LOGI(TAG, "uart[%d] event", UART_PORT);
+            ESP_LOGI(TAG, "uart[%d] event", event.type);
             switch (event.type)
             {
             /* UART DATA EVENT */
             case UART_DATA:
-                // ESP_LOGI(TAG, "[UART DATA]: %d", event.size);
                 uart_read_bytes(UART_PORT, dtmp, event.size, (TickType_t)portMAX_DELAY);
-                uart_write_state_machine((uint8_t*)dtmp, event.size);
-                // memcpy(global_buffer + uart_read_index, dtmp, event.size);
+                uart_read_state_machine((uint8_t*)dtmp, event.size);
                 uart_read_index += event.size;
                 uart_get_buffered_data_len(UART_PORT, &buffered_size);
-                // ESP_LOGI(TAG, "[DATA INDEX]: %d and %d", uart_read_index, buffered_size);
+                ESP_LOGI("UART READ", "[LEN: ]: %d", uart_read_index);
                 break;
             /* UART DATA BREAK EVENT */
             case UART_DATA_BREAK:
@@ -390,72 +219,22 @@ void uart_event_task(void *pvParameters)
 }
 
 /**
- * @brief Handles incoming data to send to UART.
+ * @brief Writes data into the internal buffer.
  *
- * This function processes the received UART data buffer, parses commands, 
- * verifies packet formats, or forwards the data for further handling. 
- * It is typically invoked from the UART event task or a UART ISR context.
+ * This function copies the provided data into the internal 
+ * data buffer starting from the current write offset. It handles 
+ * boundary checks to ensure that the buffer does not overflow.
  *
- * @param data   Pointer to the UART data buffer.
+ * @param src    Pointer to the source data to be written.
+ * @param size   Number of bytes to write.
  *
- * @return       0 if data is handled successfully,
- *               non-zero error code if parsing or validation fails.
+ * @return  0 on success,
+ *         -1 if input is invalid,
+ *         -2 if write exceeds buffer capacity.
  */
-int uart_data_handler(const uint8_t *data)
+int write_data(const void *src, uint32_t size)
 {
-    error_code_t status = ESP_OK;
-    uart_data_pack_t packet;
-
-    packet.start_byte = data[0];
-    packet.packet_type = data[1];
-    packet.length = byte_array_to_u32_little_endian(&data[2]);
-    if (packet.length != 0)
-    {
-        memcpy(packet.payload, &data[3], packet.length);
-    }
-
-    /* 6 is the 1(start byte)+1(packet_type)+4(length) */
-    packet.crc = byte_array_to_u32_big_endian(&data[6 + packet.length]);
-    if (packet.length != 0 && packet.length <= PAYLOAD_LEN)
-    {
-        memcpy(packet.payload, &data[3], packet.length);
-    }
-
-    status = validate_crc(data, (6 + packet.length), packet.crc);
-    if (true != status)
-    {
-        return CRC_CHECK_ERROR;
-    }
-
-    ESP_LOGI("PACKET", "start_byte: 0x%X", packet.start_byte);
-    ESP_LOGI("PACKET", "packet_type: 0x%X", packet.packet_type);
-    ESP_LOGI("PACKET", "length: 0x%lX", packet.length);
-    ESP_LOGI("PACKET", "crc: 0x%lX", packet.crc);
-
-    switch (packet.packet_type)
-    {
-    case BLE_CONFIG_REQUEST:
-        config_request_flag = true;
-        ESP_LOGI(TAG, "Received: BLE_CONFIG_REQUEST");
-        reset_uart_configuration();
-        status = uart_write_bytes(UART_PORT, data, (10 + packet.length));
-        break;
-    case BLE_VERSION_REQUEST:
-        ESP_LOGI(TAG, "Received: BLE_VERSION_REQUEST");
-        response_flag = true;
-        // status = uart_write_bytes(UART_PORT, data, (10 + packet.length));
-        break;
-    case BLE_CONFIG_RESPONSE:
-
-        break;
-    default:
-        ESP_LOGI(TAG, "Received: INVALID REQUEST %d", packet.packet_type);
-        status = INVALID_PACKET_ERROR;
-        break;
-    }
-    if (status > 0)
-    {
-        status = BLE_ACK;
-    }
-    return status;
+    initialize_uart_vars();
+    return uart_write_bytes(UART_PORT, src, size);
 }
+

@@ -19,12 +19,17 @@
 #include "nimble/nimble_port_freertos.h"
 #include "services/gap/ble_svc_gap.h"
 #include "uart_handler.h"
+#include "ble_response_handler.h"
 
+/* DEFINES */
+
+/* VARIABLES */
+
+/* FUNCTION PROTOTYPE */
 static const char *tag = "NimBLE_BLE_PRPH";
 static int ble_gap_event(struct ble_gap_event *event, void *arg);
 static void security_initialization(void);
 static uint8_t own_addr_type;
-
 void ble_store_config_init(void);
 
 /**
@@ -354,6 +359,8 @@ void app_main(void) {
 
 	/* XXX Need to have template for store */
 	ble_store_config_init();
+
+	uart_initialization();
 
 	xTaskCreate(uart_event_task, "uart_event_task", 10 * 1024, NULL, 3, NULL);
 

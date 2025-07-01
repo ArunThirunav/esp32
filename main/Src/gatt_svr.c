@@ -18,9 +18,11 @@
 #include <stdio.h>
 #include <string.h>
 
+/* DEFINES */
 /*** Maximum number of characteristics with the notify flag ***/
 #define MAX_NOTIFY 5
 
+/* VARIABLES */
 static const ble_uuid128_t gatt_svr_svc_uuid =
     BLE_UUID128_INIT(0x32, 0x4F, 0xD3, 0xC6, 0x89, 0xB2, 0xBB, 0x94, 0xBE, 0x44,
                      0x84, 0xAD, 0x10, 0x00, 0xBD, 0xA2);
@@ -40,7 +42,6 @@ static const ble_uuid128_t gatt_misc_write_uuid =
 static const ble_uuid128_t gatt_future_uuid =
     BLE_UUID128_INIT(0x32, 0x4F, 0xD3, 0xC6, 0x89, 0xB2, 0xBB, 0x94, 0xBE, 0x44,
                      0x84, 0xAD, 0x14, 0x00, 0xBD, 0xA2);
-
 
 /* A custom descriptor */
 static uint8_t gatt_svr_dsc_val;

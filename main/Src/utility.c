@@ -1,13 +1,13 @@
 /* USER CODE BEGIN Header */
 /**
  ******************************************************************************
- * @file           : utils.c
+ * @file           : utility.c
  * @brief          : Handle the utility functionality like bytearray to u32
  ******************************************************************************
  */
 /* USER CODE END Header */
 
-#include "utils.h"
+#include "utility.h"
 #include "esp_log.h"
 
 /**
@@ -21,12 +21,7 @@
  *
  * @return        32-bit unsigned integer converted from the byte array.
  */
-uint32_t byte_array_to_u32_little_endian(const uint8_t* data) {
-    for (int i = 0; i < 4; i++)
-    {
-        ESP_LOGI("LITTLE: ", "%d", data[i]);
-    }
-    
+uint32_t byte_array_to_u32_little_endian(const uint8_t* data) {    
     return ((uint32_t)data[3]) << 24 |
             ((uint32_t)data[2] << 16) |
             ((uint32_t)data[1] << 8) |
@@ -45,10 +40,6 @@ uint32_t byte_array_to_u32_little_endian(const uint8_t* data) {
  * @return        32-bit unsigned integer converted from the byte array.
  */
 uint32_t byte_array_to_u32_big_endian(const uint8_t* data) {
-    for (int i = 0; i < 4; i++)
-    {
-        ESP_LOGI("BIG: ", "%d", data[i]);
-    }
     return ((uint32_t)data[3])|
             ((uint32_t)data[2] << 8) |
             ((uint32_t)data[1] << 16) |
