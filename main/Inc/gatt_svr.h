@@ -11,6 +11,7 @@
 #define GATT_SVR_H
 
 #include <stdbool.h>
+#include <stdint.h>
 #include "nimble/ble.h"
 #include "modlog/modlog.h"
 #include "esp_peripheral.h"
@@ -22,7 +23,7 @@ struct ble_hs_cfg;
 struct ble_gatt_register_ctxt;
 
 void gatt_svr_register_cb(struct ble_gatt_register_ctxt *ctxt, void *arg);
-int gatt_svr_init(void);
+int32_t gatt_svr_init(void);
 
 #ifdef __cplusplus
 }

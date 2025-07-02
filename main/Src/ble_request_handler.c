@@ -31,7 +31,7 @@
  * @return       0 if data is handled successfully,
  *               non-zero error code if parsing or validation fails.
  */
-int ble_request_handler(const uint8_t *data)
+int32_t ble_request_handler(const uint8_t *data)
 {
     error_code_t status = ESP_OK;
     uart_data_pack_t packet;

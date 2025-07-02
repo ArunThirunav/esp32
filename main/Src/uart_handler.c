@@ -39,7 +39,7 @@ static const char *TAG = "UART";
 #define FILE_SIZE (5488)
 
 static uart_write_state_t uart_state = UART_READ_START;
-int uart_read_index = 0;
+int32_t uart_read_index = 0;
 
 /* FUNCTION PROTOTYPE */
 static void uart_read_state_machine(uint8_t* data, uint32_t len);
@@ -179,7 +179,7 @@ void uart_event_task(void *pvParameters)
                 uart_read_state_machine((uint8_t*)dtmp, event.size);
                 uart_read_index += event.size;
                 uart_get_buffered_data_len(UART_PORT, &buffered_size);
-                ESP_LOGI("UART READ", "[LEN: ]: %d", uart_read_index);
+                ESP_LOGI("UART READ", "[LEN: ]: %ld", uart_read_index);
                 break;
             /* UART DATA BREAK EVENT */
             case UART_DATA_BREAK:
@@ -232,7 +232,7 @@ void uart_event_task(void *pvParameters)
  *         -1 if input is invalid,
  *         -2 if write exceeds buffer capacity.
  */
-int write_data(const void *src, uint32_t size)
+int32_t write_data(const void *src, uint32_t size)
 {
     initialize_uart_vars();
     return uart_write_bytes(UART_PORT, src, size);

@@ -48,7 +48,7 @@ static void ble_advertisement(void) {
 	struct ble_gap_adv_params adv_params;
 	struct ble_hs_adv_fields fields;
 	const char *name;
-	int rc;
+	int32_t rc;
 
 	memset(&fields, 0, sizeof fields);
 
@@ -70,7 +70,7 @@ static void ble_advertisement(void) {
 	rc = ble_gap_adv_set_fields(&fields);
 	if (rc != 0)
 	{
-		MODLOG_DFLT(ERROR, "error setting advertisement data; rc=%d\n", rc);
+		MODLOG_DFLT(ERROR, "error setting advertisement data; rc=%ld\n", rc);
 		return;
 	}
 
@@ -82,7 +82,7 @@ static void ble_advertisement(void) {
 						   ble_gap_event, NULL);
 	if (rc != 0)
 	{
-		MODLOG_DFLT(ERROR, "error enabling advertisement; rc=%d\n", rc);
+		MODLOG_DFLT(ERROR, "error enabling advertisement; rc=%ld\n", rc);
 		return;
 	}
 }
@@ -104,7 +104,7 @@ static void ble_advertisement(void) {
  */
 static int ble_gap_event(struct ble_gap_event *event, void *arg) {
 	struct ble_gap_conn_desc desc;
-	int rc;
+	int32_t rc;
 
 	switch (event->type)
 	{
@@ -243,7 +243,7 @@ static void ble_on_reset(int reason) {
  * @return None
  */
 static void ble_on_sync(void) {
-	int rc;
+	int32_t rc;
 	/* Make sure we have proper identity address set (public preferred) */
 	rc = ble_hs_util_ensure_addr(0);
 	assert(rc == 0);
@@ -252,7 +252,7 @@ static void ble_on_sync(void) {
 	rc = ble_hs_id_infer_auto(0, &own_addr_type);
 	if (rc != 0)
 	{
-		MODLOG_DFLT(ERROR, "error determining address type; rc=%d\n", rc);
+		MODLOG_DFLT(ERROR, "error determining address type; rc=%ld\n", rc);
 		return;
 	}
 
@@ -325,7 +325,7 @@ static void security_initialization(void) {
  * @return None.
  */
 void app_main(void) {
-	int rc;
+	int32_t rc;
 
 	/* Initialize NVS — it is used to store PHY calibration data */
 	esp_err_t ret = nvs_flash_init();

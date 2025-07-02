@@ -166,7 +166,7 @@ int file_descriptor_read_cb(uint16_t conn_handle, uint16_t attr_handle,
  */
 void notify_client(uint16_t conn_handle, uint16_t attr_handle, uint8_t err_code)
 {
-	int rt = err_code;
+	int32_t rt = err_code;
 	struct os_mbuf *om = ble_hs_mbuf_from_flat(&rt, 1);
 	ble_gattc_notify_custom(conn_handle, attr_handle, om);
 }

@@ -40,10 +40,9 @@ typedef enum {
 
 /* FUNCTION PROTOTYPES */
 void uart_initialization(void);
-int ble_request_handler(const uint8_t* data);
 uint8_t* uart_read_data(uint32_t* length);
 void uart_event_task(void *pvParameters);
 
-int write_data(const void *src, uint32_t size);
+int32_t write_data(const void *src, uint32_t size);
 
 #endif /* END OF UART_HANDLER_H */

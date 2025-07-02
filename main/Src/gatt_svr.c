@@ -136,8 +136,8 @@ void gatt_svr_register_cb(struct ble_gatt_register_ctxt *ctxt, void *arg) {
  * @return  0 on success,
  *          non-zero error code if initialization fails.
  */
-int gatt_svr_init(void) {
-  int rc;
+int32_t gatt_svr_init(void) {
+  int32_t rc;
 
   ble_svc_gap_init();
   ble_svc_gatt_init();

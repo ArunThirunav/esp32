@@ -14,6 +14,6 @@
 #include <stdint.h>
 #include "uart_handler.h"
 
-int ble_request_handler(const uint8_t *data);
+int32_t ble_request_handler(const uint8_t *data);
 
 #endif /* END OF CONFIG_HANDLE_H*/

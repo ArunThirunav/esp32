@@ -18,7 +18,7 @@ static uint32_t data_read_length = 0;
 static uint8_t global_buffer[BUFFER_SIZE];
 static uint32_t uart_write_index = 0;
 extern uint16_t notify_config_handle;
-int current_offset = 0;
+int32_t current_offset = 0;
 uint32_t sent = 0;
 static uint16_t connection_hndl = 0;
 
@@ -144,9 +144,9 @@ uint16_t get_connection_handle(void) {
  */
 uint8_t *global_buffer_read(uint32_t *length)
 {
-    int remaining = get_data_read_length() - current_offset;
-    int prev_offset = 0;
-    int len = remaining > CHUNK_SIZE ? CHUNK_SIZE : remaining;
+    int32_t remaining = get_data_read_length() - current_offset;
+    int32_t prev_offset = 0;
+    int32_t len = remaining > CHUNK_SIZE ? CHUNK_SIZE : remaining;
 
     ESP_LOGI("READ: ", "Sent: %ld", sent += *length);
 
