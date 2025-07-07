@@ -126,6 +126,14 @@ static int ble_gap_event(struct ble_gap_event *event, void *arg) {
 			/* Connection failed; resume advertising. */
 			ble_advertisement();
 		}
+		// ble_gap_set_prefered_le_phy(event->link_estab.conn_handle, BLE_HCI_LE_PHY_2M_PREF_MASK, BLE_HCI_LE_PHY_2M_PREF_MASK, 0);
+		/* Try to update connection parameters */
+		struct ble_gap_upd_params params = {.itvl_min = 6,
+											.itvl_max = 8,
+											.latency = 0,
+											.supervision_timeout = 400 };
+		rc = ble_gap_update_params(event->connect.conn_handle, &params);
+
 		return 0;
 
 	case BLE_GAP_EVENT_DISCONNECT:

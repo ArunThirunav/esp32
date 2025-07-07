@@ -28,7 +28,8 @@ uint8_t version_request[42] = {
     0x00, 0x00, 0x01, 0x00,                                     /* COPUI */
     0xD3, 0xA2, 0x1A, 0x71,
 };
-
+int counter = 0;
+uint8_t res = 0xAA;
 /**
  * @brief GATT Write callback for file transfer characteristic.
  *
@@ -50,7 +51,12 @@ int file_transfer_write_cb(uint16_t conn_handle, uint16_t attr_handle,
 						   struct ble_gatt_access_ctxt *ctxt, void *arg)
 {
 	/* TODO: HANDLE THE FW CHUNK SAVE TO FLASH */
-	ESP_LOGI("BLE", "Received chunk of bytes");
+	ESP_LOGI("BLE", "Received chunk of bytes: %d", ctxt->om->om_len );
+	ESP_LOGI("BLE", "Total bytes: %d", counter +=ctxt->om->om_len );
+	uint8_t tx, rx;
+	ble_gap_read_le_phy(conn_handle, &tx, &rx);
+	ESP_LOGI("BLE", "TX: %d, RX: %d", tx, rx);
+	notify_client(conn_handle, attr_handle, res);
 	return 0;
 }
 
@@ -75,7 +81,29 @@ int file_transfer_write_cb(uint16_t conn_handle, uint16_t attr_handle,
 int config_file_read_cb(uint16_t conn_handle, uint16_t attr_handle,
 						struct ble_gatt_access_ctxt *ctxt, void *arg)
 {
-	ESP_LOGI("READ CONFIG: ", "CHARACTERISTICS");
+	if (ctxt->om->om_data == NULL)
+	{
+		ESP_LOGI("CONFIG_FILE_WRITE_CB: ", "NULL DATA");
+		return 0;
+	}
+	
+	switch (ctxt->op)
+	{
+	case BLE_GATT_ACCESS_OP_READ_CHR:
+		ESP_LOGI("BLE", "Read Response");
+		os_mbuf_append(ctxt->om, version_request, sizeof(version_request));
+		break;
+	case BLE_GATT_ACCESS_OP_WRITE_CHR:
+		ESP_LOGI("BLE", "Write Response: %d", ctxt->om->om_len);
+		ESP_LOGI("BLE", "Write Response: %s", ctxt->om->om_data);
+		ble_request_handler(ctxt->om->om_data);
+		notify_client(conn_handle, attr_handle, res);
+		break;
+	default:
+		break;
+	}
+	return 0;
+	ESP_LOGI("WRITE CONFIG: ", "CHARACTERISTICS");
 	return 0;
 }
 
@@ -102,6 +130,11 @@ int request_response_cb(uint16_t conn_handle, uint16_t attr_handle,
 {
 
 	error_code_t status = BLE_ACK;
+	if (ctxt->om->om_data == NULL)
+	{
+		ESP_LOGI("ERROR: ", "NULL DATA");
+		return 0;
+	}
 	const uint8_t *data = ctxt->om->om_data;
 	/* CHANGE BASED ON READ WRITE */
 	switch (ctxt->op)

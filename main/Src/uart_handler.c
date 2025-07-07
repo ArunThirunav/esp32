@@ -124,7 +124,7 @@ static void uart_read_state_machine(uint8_t* data, uint32_t len) {
         }
         switch (data[1])
         {
-        case BLE_CONFIG_RESPONSE:
+        case BLE_READ_CONFIG_RESPONSE:
         case BLE_VERSION_RESPONSE:
             set_data_read_length(byte_array_to_u32_little_endian(&data[2]));
             reset_buffer_variables();

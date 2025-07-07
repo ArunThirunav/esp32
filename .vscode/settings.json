@@ -9,6 +9,7 @@
         "array": "c",
         "string": "c",
         "string_view": "c",
-        "gatt_svr_handler.h": "c"
+        "gatt_svr_handler.h": "c",
+        "stdint.h": "c"
     }
 }

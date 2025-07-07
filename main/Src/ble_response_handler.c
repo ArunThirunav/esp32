@@ -9,13 +9,13 @@
 
 /* DEFINES */
 #define BUF_SIZE (1024)
-#define FW_FILE_CHUNK (128)
+#define FW_FILE_CHUNK (20)
 #define BUFFER_SIZE (FW_FILE_CHUNK * BUF_SIZE) // 256KB
 #define CHUNK_SIZE (500)
 
 /* VARIABLES */
 static uint32_t data_read_length = 0;
-static uint8_t global_buffer[BUFFER_SIZE];
+static uint8_t read_file_buffer[BUFFER_SIZE];
 static uint32_t uart_write_index = 0;
 extern uint16_t notify_config_handle;
 int32_t current_offset = 0;
@@ -89,7 +89,7 @@ uint32_t get_data_read_length(void) {
  */
 void store_config_file(uint8_t* data, uint32_t length) 
 {
-    memcpy(global_buffer + uart_write_index, data, length);        
+    memcpy(read_file_buffer + uart_write_index, data, length);        
     ESP_LOGI("UART_WRITE_INDEX", "%ld", uart_write_index);
     uart_write_index += length;
     ESP_LOGI("BYTES RECEIVED: ", "%ld", uart_write_index);
@@ -159,7 +159,7 @@ uint8_t *global_buffer_read(uint32_t *length)
         current_offset = 0;
     }
 
-    return &global_buffer[prev_offset];
+    return &read_file_buffer[prev_offset];
 }
 
 /**
@@ -192,7 +192,7 @@ void send_config_file(void)
         memset(temp, '\0', sizeof(temp));
 
         temp[0] = START_BYTE;
-        temp[1] = BLE_CONFIG_RESPONSE;
+        temp[1] = BLE_READ_CONFIG_RESPONSE;
         
         const uint8_t *resp = global_buffer_read(&length);
         u32_to_byte_array_little_endian(&temp[2], length);

@@ -58,11 +58,11 @@ uint32_t byte_array_to_u32_big_endian(const uint8_t* data) {
  *
  * @return        None.
  */
-void u32_to_byte_array_little_endian(uint8_t* data, uint32_t length) {
-    data[0] = length >> 24;
-	data[1] = length >> 16;
-	data[2] = length >> 8;
-	data[3] = length;  
+void u32_to_byte_array_little_endian(uint8_t* data, uint32_t value) {
+    data[0] = value >> 24;
+	data[1] = value >> 16;
+	data[2] = value >> 8;
+	data[3] = value;  
 }
 
 /**
@@ -77,9 +77,9 @@ void u32_to_byte_array_little_endian(uint8_t* data, uint32_t length) {
  *
  * @return        None.
  */
-void u32_to_byte_array_big_endian(uint8_t* data, uint32_t length) {
-    data[0] = length;
-	data[1] = length >> 8;
-	data[2] = length >> 16;
-	data[3] = length >> 24;  
+void u32_to_byte_array_big_endian(uint8_t* data, uint32_t value) {
+    data[0] = value;
+	data[1] = value >> 8;
+	data[2] = value >> 16;
+	data[3] = value >> 24;  
 }

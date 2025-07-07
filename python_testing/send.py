@@ -1,22 +1,21 @@
-# file_size = os.path.getsize(BIN_FILE)
-# print(f"Sending {file_size} bytes in {chunk_size}-byte chunks...")
-# with open(BIN_FILE, "rb") as f:
-#     index = 0
-#     while True:
-#         chunk = f.read(chunk_size)
-#         if not chunk:
-#             break
-#         print(f"Sent chunk {index + 1} ({len(chunk)} bytes) \n {chunk} \n")
-#         index += 1
 import asyncio
 from bleak import BleakClient, BleakScanner
 import os
+from datetime import datetime
 
 # === CONFIGURATION ===
-DEVICE_NAME = "nimble_prph"  # or use the MAC address like "AA:BB:CC:DD:EE:FF"
-CHAR_UUID = "00000006-8c26-476f-89a7-a108033a69c7"  # Change to your characteristic UUID
-BIN_FILE = "bleprph.bin"
-chunk_size = 500
+# BLE_DEVICE_ADDRESS = "A0:85:E3:F1:87:CE"  # Replace with your ESP32's MAC
+# BLE_DEVICE_ADDRESS = "A0:85:E3:F0:FB:82"  # Replace with your ESP32's MAC
+# BLE_DEVICE_ADDRESS = "A0:85:E3:F1:8F:2A"  # Replace with your ESP32's MAC
+BLE_DEVICE_ADDRESS = "A0:85:E3:F0:76:16"  # Replace with your ESP32's MAC
+# BLE_DEVICE_ADDRESS = "A0:85:E3:F1:8C:C6"  # Replace with your ESP32's MAC
+
+CHAR_UUID = "A2BD0011-AD84-44BE-94BB-B289C6D34F32"
+# CHAR_UUID = "FF01"
+CHUNK_SIZE = 500
+# BIN_FILE = "test_20mb.bin"
+BIN_FILE = "nexus_cfg_main.cfg"
+
 
 async def send_file_in_chunks(address, char_uuid, file_path, chunk_size):
     async with BleakClient(address) as client:
@@ -30,32 +29,23 @@ async def send_file_in_chunks(address, char_uuid, file_path, chunk_size):
 
         with open(file_path, "rb") as f:
             index = 0
+            start_time = datetime.now()
             while True:
                 chunk = f.read(chunk_size)
                 if not chunk:
                     break
 
                 await client.write_gatt_char(char_uuid, chunk, response=False)
-                print(f"Sent chunk {index + 1} ({len(chunk)} bytes)")
+                # print(f"Sent chunk {index + 1} ({len(chunk)} bytes)")
                 index += 1
-
+        end_time = datetime.now()
+        time_diff = end_time - start_time
         print("File sent successfully.")
+        print("Time Taken: ", time_diff)
+
 
 async def main():
-    print("Scanning for BLE devices...")
-    devices = await BleakScanner.discover()
-    target_device = None
-
-    for d in devices:
-        if DEVICE_NAME.lower() in (d.name or "").lower():
-            target_device = d
-            break
-
-    if not target_device:
-        print(f"Device '{DEVICE_NAME}' not found.")
-        return
-
-    await send_file_in_chunks(target_device.address, CHAR_UUID, BIN_FILE, chunk_size)
+    await send_file_in_chunks(BLE_DEVICE_ADDRESS, CHAR_UUID, BIN_FILE, CHUNK_SIZE)
 
 if __name__ == "__main__":
     asyncio.run(main())
