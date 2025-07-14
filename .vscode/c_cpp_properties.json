@@ -4,7 +4,7 @@
             "name": "Linux",
             "includePath": [
                 "${workspaceFolder}/**",
-                "C:/Espressif/frameworks/esp-idf-v5.4.1/**",
+                // "C:/Espressif/frameworks/esp-idf-v5.4.1/**",
                 "/home/hinata/esp/esp-idf/**"
             ],
             "defines": [],

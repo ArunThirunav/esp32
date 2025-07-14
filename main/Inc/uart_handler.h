@@ -16,9 +16,10 @@
 #include "freertos/task.h"
 #include "freertos/queue.h"
 #include "driver/uart.h"
+#include "esp_err.h"
 
 /* MACROS */
-#define PAYLOAD_LEN             (0x100)
+#define PAYLOAD_LEN             (0x200)
 
 /* STRUCTS */
 #pragma pack(1)
@@ -30,8 +31,6 @@ typedef struct {
     uint32_t crc;
 }uart_data_pack_t;
 
-
-
 typedef enum {
     UART_READ_START,
     UART_READ_DATA,
@@ -39,7 +38,7 @@ typedef enum {
 }uart_write_state_t;
 
 /* FUNCTION PROTOTYPES */
-void uart_initialization(void);
+esp_err_t uart_initialization(void);
 uint8_t* uart_read_data(uint32_t* length);
 void uart_event_task(void *pvParameters);
 

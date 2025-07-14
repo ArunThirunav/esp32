@@ -10,6 +10,15 @@
         "string": "c",
         "string_view": "c",
         "gatt_svr_handler.h": "c",
-        "stdint.h": "c"
+        "stdint.h": "c",
+        "fw_file_handler.h": "c",
+        "flash_handler.h": "c",
+        "chrono": "c",
+        "ble_app.h": "c",
+        "ble_response_handler.h": "c",
+        "esp_log.h": "c",
+        "task.h": "c",
+        "bitset": "c",
+        "regex": "c"
     }
 }

@@ -64,8 +64,9 @@ static QueueHandle_t uart1_queue;
  *
  * @return None.
  */
-void uart_initialization(void)
+esp_err_t uart_initialization(void)
 {
+    esp_err_t ret;
     uart_config_t uart_config = {
         .baud_rate = BAUD_RATE,
         .data_bits = UART_DATA_8_BITS,
@@ -75,11 +76,16 @@ void uart_initialization(void)
         .source_clk = UART_SCLK_DEFAULT,
     };
     // Install UART driver, and get the queue.
-    uart_driver_install(UART_PORT, RD_BUF_SIZE * 15, RD_BUF_SIZE * 2, 80, &uart1_queue, 0);
-    uart_param_config(UART_PORT, &uart_config);
+    ret = uart_driver_install(UART_PORT, RD_BUF_SIZE * 15, RD_BUF_SIZE * 2, 80, &uart1_queue, 0);
+    if (ret != ESP_OK) return ret;
+    // CONFIGURE UART 
+    ret = uart_param_config(UART_PORT, &uart_config);
+    if (ret != ESP_OK) return ret;
 
     // Set UART pins (using UART0 default pins ie no changes.)
-    uart_set_pin(UART_PORT, TXD_PIN, RXD_PIN, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
+    ret = uart_set_pin(UART_PORT, TXD_PIN, RXD_PIN, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
+    if (ret != ESP_OK) return ret;
+    return ret;
 }
 
 /**
@@ -165,6 +171,7 @@ void uart_event_task(void *pvParameters)
     uart_event_t event;
     size_t buffered_size;
     bzero(dtmp, RD_BUF_SIZE);
+    ESP_LOGI("UART TASK: ", "Task Created");
     for (;;)
     {
         // Waiting for UART event.

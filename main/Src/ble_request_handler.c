@@ -8,25 +8,32 @@
 /* USER CODE END Header */
 
 #include <string.h>
+#include "esp_log.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/queue.h"
 #include "ble_request_handler.h"
+#include "fw_file_handler.h"
 #include "crc.h"
 #include "utility.h"
-#include "esp_log.h"
 
-/* DEFINES */
-#define BUF_SIZE (1024)
-#define FW_FILE_CHUNK (200)
-#define BUFFER_SIZE (FW_FILE_CHUNK * BUF_SIZE) // 256KB
-#define CHUNK_SIZE (500)
+
 /* VARIABLES */
-static uint8_t write_file_buffer[BUFFER_SIZE];
+__attribute__((section(".dram2.bss"))) uint8_t write_file_buffer[BUFFER_SIZE];
 static uint32_t buffer_index = 0;
 static bool transfer_complete = false;
 static bool start_byte_flag = true;
+static uint32_t count = 0;
+static int active_half = 0; // 0 = first half, 1 = second half
+static size_t buffer_offset = 0; // Offset within current half
+
+extern TaskHandle_t fw_file_write_handle;
 
 /* FUNCTION PROTOTYPES */
 static void write_config_file_handle(const uint8_t *data, uint32_t len);
 static void process_received_data(void);
+extern uint32_t get_total_flash_size(uint32_t* total, uint32_t* used);
+static error_code_t ble_fw_file_handler(uart_data_pack_t* packet);
+uint32_t total, used;
 
 /**
  * @brief Handles incoming data to send to UART.
@@ -45,6 +52,7 @@ int32_t ble_request_handler(const uint8_t *data)
     error_code_t status = ESP_OK;
     uart_data_pack_t packet;
 
+
     packet.start_byte = data[START_BYTE_INDEX];
     packet.packet_type = data[PACKET_TYPE_INDEX];
     packet.length = byte_array_to_u32_little_endian(&data[PAYLOAD_START_INDEX]);
@@ -52,22 +60,16 @@ int32_t ble_request_handler(const uint8_t *data)
     /* 6 is the 1(start byte)+1(packet_type)+4(length) */
     packet.crc = byte_array_to_u32_big_endian(&data[HEADER_SIZE + packet.length]);
 
-    /* TODO: FOR FUTURE USE. FOLLOWING COPY IS DONE */
-    if (packet.length != 0 && packet.length <= PAYLOAD_LEN)
-    {
-        memcpy(packet.payload, &data[3], packet.length);
+    if (packet.length != 0 && packet.length <= PAYLOAD_LEN) {
+        memcpy(packet.payload, &data[6], packet.length);
     }
 
     status = validate_crc(data, (6 + packet.length), packet.crc);
-    ESP_LOGI("PACKET", "crc: 0x%lX", packet.crc);
     if (true != status)
     {
+        ESP_LOGI("PACKET ERROR", "crc: 0x%lX", packet.crc);
         return CRC_CHECK_ERROR;
     }
-
-    ESP_LOGI("PACKET", "start_byte: 0x%X", packet.start_byte);
-    ESP_LOGI("PACKET", "packet_type: 0x%X", packet.packet_type);
-    ESP_LOGI("PACKET", "length: 0x%lX", packet.length);
 
     switch (packet.packet_type)
     {
@@ -84,13 +86,31 @@ int32_t ble_request_handler(const uint8_t *data)
         ESP_LOGI("BLE_WRITE_CONFIG_REQUEST", "Received:%ld", packet.length);
         write_config_file_handle(&data[6], packet.length);
         break;
+    case BLE_FW_UPLOAD_START:
+        /* ERASE THE FLASH REGION */
+        ESP_LOGI("BLE_FW_UPLOAD_START", "Erasing");
+        buffer_index = 0;
+        status = erase_flash();
+        break;
+    case BLE_FW_UPLOAD_DATA:
+        /* WRITE THE FW DATA TO FLASH */
+        ESP_LOGI("BLE_FW_UPLOAD_DATA", "%ld", (++count * packet.length));
+        status = ble_fw_file_handler(&packet);      
+        break;
+    case BLE_FW_UPLOAD_END:
+        /* SEND NOTIFICATION TO MOBILE AND NEXUS */
+        ESP_LOGI("BLE_FW_UPLOAD_END", "Notify");
+        get_total_flash_size(&total, &used);
+        ESP_LOGI("FLASH_USED: ", "Total: %ld, Used: %ld", total, used);
+        buffer_index = 0;
+        count = 0;
+        break;
     default:
         ESP_LOGI("PACKET ERROR", "Received: INVALID REQUEST %ld", (int32_t)packet.packet_type);
         status = INVALID_PACKET_ERROR;
         break;
     }
-    if (status > 0)
-    {
+    if (status > 0){
         status = BLE_ACK;
     }
     return status;
@@ -157,3 +177,60 @@ static void process_received_data(void) {
     transfer_complete = false;
     start_byte_flag = true;
 }
+
+static error_code_t ble_fw_file_handler(uart_data_pack_t* packet){
+    error_code_t rc = ESP_OK;
+    return rc;
+    bool last_packet = false;
+    size_t base_offset = active_half * HALF_SIZE;
+
+    last_packet = (packet->length < CHUNK_SIZE) ? true : false;
+    if (last_packet == true) {
+        set_last_packet(active_half, buffer_offset);
+    }
+    
+    if (buffer_offset + packet->length > HALF_SIZE) {
+         // Only part of the packet fits in current half
+        uint32_t remaining_space = HALF_SIZE - buffer_offset;
+
+        if (remaining_space > 0) {
+            memcpy(&write_file_buffer[base_offset + buffer_offset], packet->payload, remaining_space);
+        }
+
+        // Notify current half full
+        BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+        vTaskNotifyGiveIndexedFromISR(fw_file_write_handle, active_half, &xHigherPriorityTaskWoken);
+
+        // Switch to next half
+        active_half = 1 - active_half;
+        buffer_offset = 0;
+
+        // Write the leftover part to the new half
+        size_t leftover_len = packet->length - remaining_space;
+        memcpy(&write_file_buffer[active_half * HALF_SIZE + buffer_offset], packet->payload + remaining_space, leftover_len);
+        buffer_offset += leftover_len;
+
+        if (xHigherPriorityTaskWoken) portYIELD_FROM_ISR();
+    }
+
+    else {
+        memcpy(&write_file_buffer[base_offset + buffer_offset], packet->payload, packet->length);
+        buffer_offset += packet->length;
+        if (buffer_offset >= HALF_SIZE) {
+            // Notify flash write task about which half is ready
+            BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+            vTaskNotifyGiveIndexedFromISR(fw_file_write_handle, active_half, &xHigherPriorityTaskWoken);
+            
+            // Switch to other half
+            active_half = 1 - active_half;
+            buffer_offset = 0;
+            
+            if (xHigherPriorityTaskWoken) {
+                portYIELD_FROM_ISR();
+            }
+        }
+    }
+    
+    return rc;
+    
+}   

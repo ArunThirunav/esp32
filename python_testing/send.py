@@ -11,10 +11,12 @@ BLE_DEVICE_ADDRESS = "A0:85:E3:F0:76:16"  # Replace with your ESP32's MAC
 # BLE_DEVICE_ADDRESS = "A0:85:E3:F1:8C:C6"  # Replace with your ESP32's MAC
 
 CHAR_UUID = "A2BD0011-AD84-44BE-94BB-B289C6D34F32"
-# CHAR_UUID = "FF01"
-CHUNK_SIZE = 500
+CHUNK_SIZE = 510
 # BIN_FILE = "test_20mb.bin"
-BIN_FILE = "nexus_cfg_main.cfg"
+# BINF_FILE = "nexus.cfg"
+BIN_FILE = "test_1mb.bin"
+# BIN_FILE = "test_10mb.bin"
+
 
 
 async def send_file_in_chunks(address, char_uuid, file_path, chunk_size):
@@ -36,12 +38,14 @@ async def send_file_in_chunks(address, char_uuid, file_path, chunk_size):
                     break
 
                 await client.write_gatt_char(char_uuid, chunk, response=False)
+                # await asyncio.sleep(0.007) # 0.005 means 5 ms
                 # print(f"Sent chunk {index + 1} ({len(chunk)} bytes)")
                 index += 1
         end_time = datetime.now()
         time_diff = end_time - start_time
         print("File sent successfully.")
         print("Time Taken: ", time_diff)
+        await asyncio.sleep(500) # 0.005 means 5 ms
 
 
 async def main():

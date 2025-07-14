@@ -53,5 +53,5 @@ async def send_file_over_ble(file_path: str, ble_address: str, char_uuid: str):
 # --------- Main ---------
 
 if __name__ == "__main__":
-    file_path = "nexuscfg.cfg"  # Replace with your file path
+    file_path = "nexus.cfg"  # Replace with your file path
     asyncio.run(send_file_over_ble(file_path, BLE_DEVICE_ADDRESS, CHARACTERISTIC_UUID))

@@ -11,6 +11,7 @@
 #include "gatt_svr_handler.h"
 #include "uart_handler.h"
 #include "ble_request_handler.h"
+#include "fw_file_handler.h"
 #include "utility.h"
 
 /* DEFINES */
@@ -30,6 +31,7 @@ uint8_t version_request[42] = {
 };
 int counter = 0;
 uint8_t res = 0xAA;
+bool flag = true;
 /**
  * @brief GATT Write callback for file transfer characteristic.
  *
@@ -51,12 +53,19 @@ int file_transfer_write_cb(uint16_t conn_handle, uint16_t attr_handle,
 						   struct ble_gatt_access_ctxt *ctxt, void *arg)
 {
 	/* TODO: HANDLE THE FW CHUNK SAVE TO FLASH */
-	ESP_LOGI("BLE", "Received chunk of bytes: %d", ctxt->om->om_len );
-	ESP_LOGI("BLE", "Total bytes: %d", counter +=ctxt->om->om_len );
-	uint8_t tx, rx;
-	ble_gap_read_le_phy(conn_handle, &tx, &rx);
-	ESP_LOGI("BLE", "TX: %d, RX: %d", tx, rx);
-	notify_client(conn_handle, attr_handle, res);
+	if(ctxt == NULL) {
+		return BLE_ATT_ERR_INVALID_PDU;
+	}
+	switch (ctxt->op) {
+	case BLE_GATT_ACCESS_OP_READ_CHR:
+		return BLE_ATT_ERR_READ_NOT_PERMITTED;
+		break;
+	case BLE_GATT_ACCESS_OP_WRITE_CHR:
+		ble_request_handler(ctxt->om->om_data);
+		break;		
+	default:
+		break;
+	}
 	return 0;
 }
 
@@ -81,28 +90,22 @@ int file_transfer_write_cb(uint16_t conn_handle, uint16_t attr_handle,
 int config_file_read_cb(uint16_t conn_handle, uint16_t attr_handle,
 						struct ble_gatt_access_ctxt *ctxt, void *arg)
 {
-	if (ctxt->om->om_data == NULL)
-	{
-		ESP_LOGI("CONFIG_FILE_WRITE_CB: ", "NULL DATA");
-		return 0;
+	if(ctxt == NULL) {
+		return BLE_ATT_ERR_INVALID_PDU;
 	}
 	
 	switch (ctxt->op)
 	{
 	case BLE_GATT_ACCESS_OP_READ_CHR:
-		ESP_LOGI("BLE", "Read Response");
-		os_mbuf_append(ctxt->om, version_request, sizeof(version_request));
+		return BLE_ATT_ERR_READ_NOT_PERMITTED;
 		break;
 	case BLE_GATT_ACCESS_OP_WRITE_CHR:
-		ESP_LOGI("BLE", "Write Response: %d", ctxt->om->om_len);
-		ESP_LOGI("BLE", "Write Response: %s", ctxt->om->om_data);
 		ble_request_handler(ctxt->om->om_data);
 		notify_client(conn_handle, attr_handle, res);
 		break;
 	default:
 		break;
 	}
-	return 0;
 	ESP_LOGI("WRITE CONFIG: ", "CHARACTERISTICS");
 	return 0;
 }
@@ -130,10 +133,8 @@ int request_response_cb(uint16_t conn_handle, uint16_t attr_handle,
 {
 
 	error_code_t status = BLE_ACK;
-	if (ctxt->om->om_data == NULL)
-	{
-		ESP_LOGI("ERROR: ", "NULL DATA");
-		return 0;
+	if(ctxt == NULL) {
+		return BLE_ATT_ERR_INVALID_PDU;
 	}
 	const uint8_t *data = ctxt->om->om_data;
 	/* CHANGE BASED ON READ WRITE */
@@ -178,6 +179,9 @@ int file_descriptor_read_cb(uint16_t conn_handle, uint16_t attr_handle,
 							struct ble_gatt_access_ctxt *ctxt, void *arg)
 {
 	const char *desc = "File Transfer Charat";
+	if(ctxt == NULL) {
+		return BLE_ATT_ERR_INVALID_PDU;
+	}
 	ESP_LOGI("BLE", "Description Called");
 	os_mbuf_append(ctxt->om, desc, strlen(desc));
 	return 0;
