@@ -18,7 +18,7 @@
 
 
 /* VARIABLES */
-__attribute__((section(".dram2.bss"))) uint8_t write_file_buffer[BUFFER_SIZE];
+__attribute__((section(".ext_ram.bss"))) uint8_t write_file_buffer[BUFFER_SIZE];
 static uint32_t buffer_index = 0;
 static bool transfer_complete = false;
 static bool start_byte_flag = true;
@@ -33,6 +33,7 @@ static void write_config_file_handle(const uint8_t *data, uint32_t len);
 static void process_received_data(void);
 extern uint32_t get_total_flash_size(uint32_t* total, uint32_t* used);
 static error_code_t ble_fw_file_handler(uart_data_pack_t* packet);
+static void reset_fw_upload_vars(void);
 uint32_t total, used;
 
 /**
@@ -89,12 +90,12 @@ int32_t ble_request_handler(const uint8_t *data)
     case BLE_FW_UPLOAD_START:
         /* ERASE THE FLASH REGION */
         ESP_LOGI("BLE_FW_UPLOAD_START", "Erasing");
+        reset_fw_upload_vars();
         buffer_index = 0;
         status = erase_flash();
         break;
     case BLE_FW_UPLOAD_DATA:
         /* WRITE THE FW DATA TO FLASH */
-        ESP_LOGI("BLE_FW_UPLOAD_DATA", "%ld", (++count * packet.length));
         status = ble_fw_file_handler(&packet);      
         break;
     case BLE_FW_UPLOAD_END:
@@ -178,59 +179,59 @@ static void process_received_data(void) {
     start_byte_flag = true;
 }
 
-static error_code_t ble_fw_file_handler(uart_data_pack_t* packet){
+static void reset_fw_upload_vars(void){
+    buffer_index = 0;
+    transfer_complete = false;
+    start_byte_flag = true;
+    count = 0;
+    active_half = 0; // 0 = first half, 1 = second half
+    buffer_offset = 0; // Offset within current half
+}
+
+static error_code_t ble_fw_file_handler(uart_data_pack_t* packet) {
     error_code_t rc = ESP_OK;
-    return rc;
-    bool last_packet = false;
     size_t base_offset = active_half * HALF_SIZE;
+    bool last_packet = (packet->length < CHUNK_SIZE); //131072
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 
-    last_packet = (packet->length < CHUNK_SIZE) ? true : false;
-    if (last_packet == true) {
-        set_last_packet(active_half, buffer_offset);
-    }
-    
     if (buffer_offset + packet->length > HALF_SIZE) {
-         // Only part of the packet fits in current half
-        uint32_t remaining_space = HALF_SIZE - buffer_offset;
-
+        size_t remaining_space = HALF_SIZE - buffer_offset;
+        // TO CALCULATE THE REMAINING SPACE THAT FILL THE BUFFER
         if (remaining_space > 0) {
             memcpy(&write_file_buffer[base_offset + buffer_offset], packet->payload, remaining_space);
         }
-
-        // Notify current half full
-        BaseType_t xHigherPriorityTaskWoken = pdFALSE;
         vTaskNotifyGiveIndexedFromISR(fw_file_write_handle, active_half, &xHigherPriorityTaskWoken);
-
-        // Switch to next half
+        
+        // SWITCH TO OTHER HALF
         active_half = 1 - active_half;
         buffer_offset = 0;
-
-        // Write the leftover part to the new half
+        // WRITE THE LEFTOVER PART TO THE NEW HALF
         size_t leftover_len = packet->length - remaining_space;
         memcpy(&write_file_buffer[active_half * HALF_SIZE + buffer_offset], packet->payload + remaining_space, leftover_len);
         buffer_offset += leftover_len;
-
-        if (xHigherPriorityTaskWoken) portYIELD_FROM_ISR();
-    }
-
+        if (xHigherPriorityTaskWoken) {
+            portYIELD_FROM_ISR();
+        }
+    } 
     else {
         memcpy(&write_file_buffer[base_offset + buffer_offset], packet->payload, packet->length);
-        buffer_offset += packet->length;
+        buffer_offset += packet->length;        
         if (buffer_offset >= HALF_SIZE) {
-            // Notify flash write task about which half is ready
-            BaseType_t xHigherPriorityTaskWoken = pdFALSE;
             vTaskNotifyGiveIndexedFromISR(fw_file_write_handle, active_half, &xHigherPriorityTaskWoken);
-            
-            // Switch to other half
             active_half = 1 - active_half;
             buffer_offset = 0;
-            
-            if (xHigherPriorityTaskWoken) {
-                portYIELD_FROM_ISR();
-            }
+        }
+        if (xHigherPriorityTaskWoken) {
+            portYIELD_FROM_ISR();
         }
     }
-    
+
+    if (last_packet) {
+        ESP_LOGI("LAST PACKET", "Active Half: %d, Offset: %d pack Len: %ld", active_half, buffer_offset, packet->length);
+        vTaskNotifyGiveIndexedFromISR(fw_file_write_handle, 2, &xHigherPriorityTaskWoken);
+        set_last_packet(active_half, buffer_offset);
+    }
+
     return rc;
-    
-}   
+}
+ 

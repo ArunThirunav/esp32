@@ -13,57 +13,36 @@
 #define ITEM_SIZE 256
 extern uint8_t write_file_buffer[BUFFER_SIZE];
 
-static uint8_t ring_buffer[FLASH_BLOCK_SIZE];
-static uint32_t write_index = 0;
-static uint32_t counter = 0;
 static uint32_t buffer_offset = 0;
 static bool last_packet_flag = false;
 static int active_half = 0; // 0 = first half, 1 = second half
+static int counter = 0;
 
 TaskHandle_t fw_file_write_handle;
 FILE *flash_fp = NULL;
 
 void ble_data_write_task(void *param)
 {
-    uint8_t chunk[256];
-    size_t chunk_len;
-
-    ESP_LOGI("FILE_HANDLE: ", "QUEUE CREATED");
-
-
+    ESP_LOGI("FILE_HANDLE: ", "TASK CREATED");
 
     while (1) {
-        // Wait for any of the 3 notifications
-        uint32_t notifiedIndex;
-        BaseType_t notified = xTaskNotifyWaitIndexed(0, 0xFFFFFFFF, 0xFFFFFFFF, &notifiedIndex, portMAX_DELAY);
-
-        if (notified == pdTRUE) {
-            switch (notifiedIndex) {
-                case HALF_0_READY:
-                    printf("Writing buffer[0] to flash\n");
-                    write_data_to_flash(&write_file_buffer[0], HALF_SIZE);
-                    break;
-
-                case HALF_1_READY:
-                    printf("Writing buffer[1] to flash\n");
-                    write_data_to_flash(&write_file_buffer[HALF_SIZE], HALF_SIZE);
-                    break;
-
-                case FINAL_FLUSH: {
-                    // Determine the last written half and partial length
-                    int flushing_half = active_half;
-                    size_t base_offset = flushing_half * HALF_SIZE;
-                    printf("Flushing final %ld bytes from half %d\n", buffer_offset, flushing_half);
-
-                    if (buffer_offset > 0) {
-                        write_data_to_flash(&write_file_buffer[base_offset], buffer_offset);
-                        buffer_offset = 0;  // reset
-                    }
-                    break;
-                }
-
-                default:
-                    break;
+        if (ulTaskNotifyTakeIndexed(HALF_0_READY, pdTRUE, pdMS_TO_TICKS(100))) {
+            ESP_LOGI("FILE_HANDLE: ", "Writing 1st Half: %d", ++counter);
+            write_data_to_flash(&write_file_buffer[0], HALF_SIZE);
+        }
+        if (ulTaskNotifyTakeIndexed(HALF_1_READY, pdTRUE, pdMS_TO_TICKS(100))) {
+            ESP_LOGI("FILE_HANDLE: ", "Writing 2nd Half: %d", ++counter);
+            write_data_to_flash(&write_file_buffer[HALF_SIZE], HALF_SIZE);
+        }
+        if (ulTaskNotifyTakeIndexed(FINAL_FLUSH, pdTRUE, pdMS_TO_TICKS(100))) {
+            ESP_LOGI("FILE_HANDLE: ", "Writing Last Packet: %d", ++counter);
+            // TO DETERMINE THE LAST WRITTEN HALF AND PARTIAL LENGTH
+            int flushing_half = active_half;
+            size_t base_offset = flushing_half * HALF_SIZE;
+            ESP_LOGI("FILE_HANDLE: ", "Flushing final %ld bytes from half %d", buffer_offset, flushing_half);
+            if (buffer_offset > 0) {
+                write_data_to_flash(&write_file_buffer[base_offset], buffer_offset);
+                buffer_offset = 0;  // reset
             }
         }
     }
@@ -76,7 +55,6 @@ void set_last_packet(uint8_t half, uint32_t offset) {
 }
 
 int32_t erase_flash(void){
-    write_index = 0;
     counter = 0;
     return format_flash();
 }

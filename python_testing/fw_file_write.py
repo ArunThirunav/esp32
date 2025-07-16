@@ -78,7 +78,7 @@ async def send_binary_file_ble(file_path: str, address: str, char_uuid: str):
                 print(f"Sent chunk {chunk_num}, size {(len(packet)-10)*chunk_num} bytes")
                 chunk_num += 1
                 total_bytes_sent += len(packet)
-                await asyncio.sleep(0.001)  # Slight delay to avoid flooding
+                await asyncio.sleep(0.012)  # Slight delay to avoid flooding
         
         end_time = time.time()
         elapsed_time = end_time - start_time
@@ -92,7 +92,7 @@ async def send_binary_file_ble(file_path: str, address: str, char_uuid: str):
         print(f"Total time taken: {elapsed_time:.2f} seconds")
         print(f"Transfer speed: {speed_bps:.2f} Bytes/sec ({speed_mbps:.2f} Mbps)")
         
-        await asyncio.sleep(5)  # Slight delay to avoid flooding
+        await asyncio.sleep(2)  # Slight delay to avoid flooding
         
         end_packet = bytearray([
             0xA5, 0x22, 0x00, 0x00, 0x00, 0x00,
@@ -100,15 +100,25 @@ async def send_binary_file_ble(file_path: str, address: str, char_uuid: str):
         ])
 
         await client.write_gatt_char(REQ_CHAR_UUID, end_packet, response=False)
+        pass
 
+async def main():
+    file_path = "fw_0_0_28_0_e42d49c7.bin"
+    # file_path = "test_1mb.bin"
+    # file_path = "test_10_255.bin"
+    # file_path = "test_10_255_neg.bin"
+    # file_path = "nexus.cfg"
+    for i in range(10):
+        print(f"Run {i+1}")
+        await send_binary_file_ble(file_path, BLE_DEVICE_ADDRESS, CHAR_UUID)
+
+    await asyncio.sleep(1)  # Optional: small delay between runs
 
 if __name__ == "__main__":
-    # file_path = "fw_0_0_28_0_e42d49c7.bin"
-    file_path = "test_1mb.bin"
-    # file_path = "nexus.cfg"
-
-    asyncio.run(send_binary_file_ble(
-        file_path,
-        BLE_DEVICE_ADDRESS,
-        CHAR_UUID
-    ))
+    try:
+        loop = asyncio.get_running_loop()
+        # Already inside an event loop — schedule task
+        asyncio.create_task(main())
+    except RuntimeError:
+        # No running loop — safe to call asyncio.run
+        asyncio.run(main())
