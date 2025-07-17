@@ -34,7 +34,7 @@ static const char *TAG = "UART";
 #define RTS_PIN ((gpio_num_t)GPIO_NUM_19)
 #define CTS_PIN ((gpio_num_t)GPIO_NUM_20)
 
-#define BAUD_RATE (115200)
+#define BAUD_RATE (1000000)
 
 #define FILE_SIZE (5488)
 

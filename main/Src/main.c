@@ -17,6 +17,7 @@
 #include "freertos/task.h"
 #include "freertos/queue.h"
 
+#include "crc.h"
 #include "ble_app.h"
 #include "flash_handler.h"
 #include "fw_file_handler.h"
@@ -83,6 +84,7 @@ void app_main(void) {
 	ESP_ERROR_CHECK(ble_initialization());
 	ESP_ERROR_CHECK(uart_initialization());
 	ESP_ERROR_CHECK(flash_initalization());
+	crc32_init();
 
 	xTaskCreateStatic(uart_event_task, "uart_event_task", UART_TASK_STACK_SIZE, NULL, 3, uart_task_stack, &uart_task_tcb);
 	ESP_LOGI("HEAP", "Free heap: %ld", esp_get_free_heap_size());

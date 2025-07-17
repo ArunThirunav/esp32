@@ -55,7 +55,14 @@ void set_last_packet(uint8_t half, uint32_t offset) {
 }
 
 int send_flash_task(void) {
-    get_file_size();
+    uint32_t file_size =  get_file_size();
+
+    if (file_size == 0){
+        return FILE_CORRUPTION_ERROR;
+    }
+    
+    send_data_to_nexus();
+
     return 0;
 }
 

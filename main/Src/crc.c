@@ -11,13 +11,36 @@
 #include "esp_log.h"
 
 /* DEFINES */
-#define CRC_MASK            (0xFFFFFFFF)
-#define POLYNOMIAL          (0x04C11DB7)
+#define CRC_MASK                (0xFFFFFFFF)
+#define CRC32_POLY_REFLECTED    (0xEDB88320)
+#define CRC_SIZE                (256)
 
 /* VARIABLES */
 
 /* FUNCTION PROTOTYPE */
 static uint32_t reflect(uint32_t data, uint8_t bits);
+
+#define FINAL_XOR   0xFFFFFFFFUL
+
+static uint32_t crc_table[CRC_SIZE];
+static int table_initialized = 0;
+
+void crc32_init(void) {
+    if (table_initialized)
+        return;
+
+    for (uint32_t i = 0; i < CRC_SIZE; i++) {
+        uint32_t crc = i;
+        for (uint8_t j = 0; j < 8; j++) {
+            if (crc & 1)
+                crc = (crc >> 1) ^ CRC32_POLY_REFLECTED;
+            else
+                crc >>= 1;
+        }
+        crc_table[i] = crc;
+    }
+    table_initialized = 1;
+}
 
 /**
  * @brief Reflects (reverses) the lower 'bits' number of bits in the given data.
@@ -30,15 +53,15 @@ static uint32_t reflect(uint32_t data, uint8_t bits);
  *
  * @return      The reflected value of the input data over the specified number of bits.
  */
-static uint32_t reflect(uint32_t data, uint8_t bits) {
-    uint32_t reflection = 0;
-    for (uint8_t i = 0; i < bits; i++) {
-        if (data & (1 << i)) {
-            reflection |= (1 << (bits - 1 - i));
-        }
-    }
-    return reflection;
-}
+// static uint32_t reflect(uint32_t data, uint8_t bits) {
+//     uint32_t reflection = 0;
+//     for (uint8_t i = 0; i < bits; i++) {
+//         if (data & (1 << i)) {
+//             reflection |= (1 << (bits - 1 - i));
+//         }
+//     }
+//     return reflection;
+// }
 
 /**
  * @brief Calculates CRC-32 checksum for the given input data buffer.
@@ -54,24 +77,34 @@ static uint32_t reflect(uint32_t data, uint8_t bits) {
  */
 uint32_t crc32(const uint8_t *data, uint32_t length) {
     uint32_t crc = CRC_MASK;
-    uint32_t poly = POLYNOMIAL;
-    
-    for (uint32_t i = 0; i < length; i++) {
-        uint8_t byte = reflect(data[i], 8);
-        crc ^= ((uint32_t)byte) << 24;
 
-        for (uint8_t j = 0; j < 8; j++) {
-            if (crc & 0x80000000)
-                crc = (crc << 1) ^ poly;
-            else
-                crc <<= 1;
-        }
-        crc &= 0xFFFFFFFF;
+    for (uint32_t i = 0; i < length; ++i) {
+        uint8_t index = (uint8_t)((crc ^ data[i]) & 0xFF);
+        crc = (crc >> 8) ^ crc_table[index];
     }
 
-    crc = reflect(crc, 32);
-    return crc ^ 0xFFFFFFFF;
+    return crc ^ FINAL_XOR;
 }
+// uint32_t crc32(const uint8_t *data, uint32_t length) {
+//     uint32_t crc = CRC_MASK;
+//     uint32_t poly = POLYNOMIAL;
+    
+//     for (uint32_t i = 0; i < length; i++) {
+//         uint8_t byte = reflect(data[i], 8);
+//         crc ^= ((uint32_t)byte) << 24;
+
+//         for (uint8_t j = 0; j < 8; j++) {
+//             if (crc & 0x80000000)
+//                 crc = (crc << 1) ^ poly;
+//             else
+//                 crc <<= 1;
+//         }
+//         crc &= 0xFFFFFFFF;
+//     }
+
+//     crc = reflect(crc, 32);
+//     return crc ^ 0xFFFFFFFF;
+// }
 
 /**
  * @brief Validates the CRC-32 of a given data buffer against an expected CRC value.

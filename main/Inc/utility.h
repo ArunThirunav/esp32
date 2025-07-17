@@ -59,6 +59,7 @@ typedef enum {
     UART_TX_ERROR = -4,
     UART_RX_ERROR = -5,
     REQUEST_PACKET_NOT_RECEIVED = -6,
+    FILE_CORRUPTION_ERROR = -7,
     UNKNOWN_ERROR
 }error_code_t;
 

@@ -1,8 +1,15 @@
 #include "flash_handler.h"
 #include "esp_log.h"
+#include "utility.h"
+#include "uart_handler.h"
 #include <sys/stat.h>
 
 static esp_vfs_littlefs_conf_t config;
+
+#define BUF_SIZE (1024)
+#define CHUNK_SIZE (256 * BUF_SIZE)
+extern uint8_t write_file_buffer[CHUNK_SIZE];
+
 
 const char* basepath = "/storage";
 const char* filepath = "/storage/nexus_fw.bin";
@@ -58,18 +65,27 @@ int32_t write_data_to_flash(const uint8_t* data, uint32_t len) {
     return 0;
 }
     
-int32_t read_data_from_flash(uint8_t* data, uint32_t len) {
+int32_t send_data_to_nexus(void) {
     FILE* fs = NULL;
     fs = fopen("/storage/nexus_fw.bin", "rb"); 
     if(fs == NULL) {
         ESP_LOGE("FLASH HANDLER: ", "Error in Reading");
         return -1;
     }
-    size_t bytes_read;    
-    bytes_read = fread(data, sizeof(uint8_t), len, fs);
+    size_t bytes_read = 0;
+    int chunk_index = 0;
+
+    while ((bytes_read = fread(write_file_buffer, 1, CHUNK_SIZE, fs)) > 0) {
+        ESP_LOGI("UART", "Sending chunk %d (%u bytes)", chunk_index++, (unsigned)bytes_read);
+
+        write_data((const char *)write_file_buffer, bytes_read);
+        ESP_LOGI("UART", "ACK received for chunk %d", chunk_index - 1);
+    }
     fclose(fs);
     return 0;
 }
+
+
 
 int32_t format_flash(void) {
     uint32_t total, used;
@@ -85,14 +101,16 @@ int32_t format_flash(void) {
     return (int32_t)result;
 }
 
-void get_file_size(void) {
+uint32_t get_file_size(void) {
     struct stat st;
 
     if (stat(filepath, &st) == 0) {
         ESP_LOGI("FILE", "Size of '%s' is %ld bytes", filepath, st.st_size);
         ESP_LOGI("FILE", "Loss: %ld bytes", (3479573 - st.st_size));
+        return st.st_size;
 
     } else {
         ESP_LOGE("FILE", "Failed to get size of '%s'", filepath);
+        return 0;
     }
 }

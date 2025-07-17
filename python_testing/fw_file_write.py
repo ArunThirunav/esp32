@@ -106,8 +106,8 @@ async def send_binary_file_ble(file_path: str, address: str, char_uuid: str):
         pass
 
 async def main():
-    file_path = "fw_0_0_28_0_e42d49c7.bin"
-    # file_path = "test_1mb.bin"
+    # file_path = "fw_0_0_28_0_e42d49c7.bin"
+    file_path = "test_1mb.bin"
     # file_path = "test_10_255.bin"
     # file_path = "test_10_255_neg.bin"
     # file_path = "nexus.cfg"
