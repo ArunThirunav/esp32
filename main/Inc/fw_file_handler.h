@@ -20,5 +20,6 @@ typedef enum {
 void ble_data_write_task(void *param);
 void set_last_packet(uint8_t half, uint32_t offset);
 int32_t erase_flash(void);
+int send_flash_task(void);
 
 #endif /* END OF FW_FILE_HANDLE_H */

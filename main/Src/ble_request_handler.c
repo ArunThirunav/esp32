@@ -105,6 +105,7 @@ int32_t ble_request_handler(const uint8_t *data)
         ESP_LOGI("FLASH_USED: ", "Total: %ld, Used: %ld", total, used);
         buffer_index = 0;
         count = 0;
+        send_flash_task();
         break;
     default:
         ESP_LOGI("PACKET ERROR", "Received: INVALID REQUEST %ld", (int32_t)packet.packet_type);

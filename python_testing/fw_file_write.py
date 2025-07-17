@@ -2,6 +2,7 @@ import asyncio
 import binascii
 from bleak import BleakClient
 import time
+import os
 
 BLE_DEVICE_ADDRESS = "A0:85:E3:F0:76:16"  # Replace with your ESP32's MAC
 CHAR_UUID = "A2BD0011-AD84-44BE-94BB-B289C6D34F32"
@@ -78,7 +79,7 @@ async def send_binary_file_ble(file_path: str, address: str, char_uuid: str):
                 print(f"Sent chunk {chunk_num}, size {(len(packet)-10)*chunk_num} bytes")
                 chunk_num += 1
                 total_bytes_sent += len(packet)
-                await asyncio.sleep(0.012)  # Slight delay to avoid flooding
+                await asyncio.sleep(0.008)  # Slight delay to avoid flooding
         
         end_time = time.time()
         elapsed_time = end_time - start_time
@@ -88,11 +89,13 @@ async def send_binary_file_ble(file_path: str, address: str, char_uuid: str):
         speed_mbps = (speed_bps * 8) / 1_000_000     # Convert to Megabits per second
 
         print(f"\nTransfer Complete:")
-        print(f"Total bytes sent: {total_bytes_sent} bytes")
+        # print(f"Total bytes sent: {total_bytes_sent} bytes")
+        size_bytes = os.path.getsize(file_path)
+        print(f"File size of '{file_path}': {size_bytes} bytes")
         print(f"Total time taken: {elapsed_time:.2f} seconds")
         print(f"Transfer speed: {speed_bps:.2f} Bytes/sec ({speed_mbps:.2f} Mbps)")
         
-        await asyncio.sleep(2)  # Slight delay to avoid flooding
+        await asyncio.sleep(5)  # Slight delay to avoid flooding
         
         end_packet = bytearray([
             0xA5, 0x22, 0x00, 0x00, 0x00, 0x00,
@@ -108,7 +111,7 @@ async def main():
     # file_path = "test_10_255.bin"
     # file_path = "test_10_255_neg.bin"
     # file_path = "nexus.cfg"
-    for i in range(10):
+    for i in range(1):
         print(f"Run {i+1}")
         await send_binary_file_ble(file_path, BLE_DEVICE_ADDRESS, CHAR_UUID)
 
