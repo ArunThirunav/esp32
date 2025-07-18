@@ -83,3 +83,11 @@ void u32_to_byte_array_big_endian(uint8_t* data, uint32_t value) {
 	data[2] = value >> 16;
 	data[3] = value >> 24;  
 }
+
+
+uint32_t big_to_little_endian(uint32_t value) {
+    return ((value >> 24) & 0x000000FF) |
+           ((value >> 8)  & 0x0000FF00) |
+           ((value << 8)  & 0x00FF0000) |
+           ((value << 24) & 0xFF000000);
+}

@@ -43,14 +43,14 @@ def create_packet(payload: bytes) -> bytes:
     header += len(payload).to_bytes(4, byteorder='little')
 
     crc = crc32_iso(header + payload)
-    crc_bytes = crc.to_bytes(4, byteorder='big')
+    crc_bytes = crc.to_bytes(4, byteorder='little')
 
     return header + payload + crc_bytes
 
 def handle_notification(sender, data):
     print("data: ", data)
-    if data == b'\x01' or data == b'\x00':
-        ack_event.set()    
+    # if data == b'\x01' or data == b'\x00':
+    ack_event.set()    
 
 async def send_binary_file_ble(file_path: str, address: str, char_uuid: str):
     async with BleakClient(address) as client:
@@ -60,10 +60,10 @@ async def send_binary_file_ble(file_path: str, address: str, char_uuid: str):
         total_bytes_sent = 0
         start_packet = bytearray([
             0xA5, 0x20, 0x00, 0x00, 0x00, 0x00, 
-            0x39, 0xD2,0x0E, 0xFA
+            0xFA, 0x0E, 0xD2, 0x39,
         ])
-
-        await client.write_gatt_char(REQ_CHAR_UUID, start_packet, response=False)
+        ack_event.clear()
+        await client.write_gatt_char(REQ_CHAR_UUID, start_packet)
         await ack_event.wait()
 
         with open(file_path, 'rb') as file:
@@ -74,12 +74,12 @@ async def send_binary_file_ble(file_path: str, address: str, char_uuid: str):
                     break
 
                 packet = create_packet(chunk)
-                await client.write_gatt_char(char_uuid, packet, response=False)
+                await client.write_gatt_char(char_uuid, packet)
 
                 print(f"Sent chunk {chunk_num}, size {(len(packet)-10)*chunk_num} bytes")
                 chunk_num += 1
                 total_bytes_sent += len(packet)
-                await asyncio.sleep(0.008)  # Slight delay to avoid flooding
+                await asyncio.sleep(0.007)  # Slight delay to avoid flooding
         
         end_time = time.time()
         elapsed_time = end_time - start_time
@@ -99,7 +99,7 @@ async def send_binary_file_ble(file_path: str, address: str, char_uuid: str):
         
         end_packet = bytearray([
             0xA5, 0x22, 0x00, 0x00, 0x00, 0x00,
-            0x43, 0x12, 0x5D, 0x9A
+            0x9A, 0x5D, 0x12, 0x43  
         ])
 
         await client.write_gatt_char(REQ_CHAR_UUID, end_packet, response=False)

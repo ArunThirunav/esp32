@@ -12,6 +12,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/queue.h"
 #include "ble_request_handler.h"
+#include "ble_response_handler.h"
 #include "fw_file_handler.h"
 #include "crc.h"
 #include "utility.h"
@@ -27,6 +28,8 @@ static int active_half = 0; // 0 = first half, 1 = second half
 static size_t buffer_offset = 0; // Offset within current half
 
 extern TaskHandle_t fw_file_write_handle;
+extern uint16_t fw_file_handle;
+extern void notify_client(uint16_t conn_handle, uint16_t attr_handle, uint8_t err_code);
 
 /* FUNCTION PROTOTYPES */
 static void write_config_file_handle(const uint8_t *data, uint32_t len);
@@ -56,16 +59,16 @@ int32_t ble_request_handler(const uint8_t *data)
 
     packet.start_byte = data[START_BYTE_INDEX];
     packet.packet_type = data[PACKET_TYPE_INDEX];
-    packet.length = byte_array_to_u32_little_endian(&data[PAYLOAD_START_INDEX]);
+    packet.length = byte_array_to_u32_little_endian(&data[LENGET_START_INDEX]);
 
     /* 6 is the 1(start byte)+1(packet_type)+4(length) */
-    packet.crc = byte_array_to_u32_big_endian(&data[HEADER_SIZE + packet.length]);
+    packet.crc = byte_array_to_u32_little_endian(&data[HEADER_SIZE + packet.length]);
 
     if (packet.length != 0 && packet.length <= PAYLOAD_LEN) {
-        memcpy(packet.payload, &data[6], packet.length);
+        memcpy(packet.payload, &data[PAYLOAD_START_INDEX], packet.length);
     }
 
-    status = validate_crc(data, (6 + packet.length), packet.crc);
+    status = validate_crc(data, (PAYLOAD_START_INDEX + packet.length), packet.crc);
     if (true != status)
     {
         ESP_LOGI("PACKET ERROR", "crc: 0x%lX", packet.crc);
@@ -85,7 +88,7 @@ int32_t ble_request_handler(const uint8_t *data)
         break;
     case BLE_WRITE_CONFIG_REQUEST:
         ESP_LOGI("BLE_WRITE_CONFIG_REQUEST", "Received:%ld", packet.length);
-        write_config_file_handle(&data[6], packet.length);
+        write_config_file_handle(&data[PAYLOAD_START_INDEX], packet.length);
         break;
     case BLE_FW_UPLOAD_START:
         /* ERASE THE FLASH REGION */
@@ -93,6 +96,7 @@ int32_t ble_request_handler(const uint8_t *data)
         reset_fw_upload_vars();
         buffer_index = 0;
         status = erase_flash();
+        notify_client(get_connection_handle(), fw_file_handle, 0);
         break;
     case BLE_FW_UPLOAD_DATA:
         /* WRITE THE FW DATA TO FLASH */

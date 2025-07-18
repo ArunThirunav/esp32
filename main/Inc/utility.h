@@ -15,7 +15,8 @@
 #define BLE_MTU 					(517)
 #define START_BYTE_INDEX            (0)
 #define PACKET_TYPE_INDEX           (1)
-#define PAYLOAD_START_INDEX         (2)
+#define LENGET_START_INDEX          (2)
+#define PAYLOAD_START_INDEX         (6)
 #define CRC_LENGTH                  (4)
 #define HEADER_SIZE                 (6) /* START BYTE-1; PACKET TYPE-1; LENGTH-4 */
 
@@ -23,6 +24,7 @@ uint32_t byte_array_to_u32_little_endian(const uint8_t* data);
 uint32_t byte_array_to_u32_big_endian(const uint8_t* data);
 void u32_to_byte_array_little_endian(uint8_t* data, uint32_t length);
 void u32_to_byte_array_big_endian(uint8_t* data, uint32_t length);
+uint32_t big_to_little_endian(uint32_t value);
 
 /* ENUMS */
 typedef enum {

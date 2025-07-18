@@ -2,6 +2,8 @@
 #include "esp_log.h"
 #include "utility.h"
 #include "uart_handler.h"
+#include "crc.h"
+#include <string.h>
 #include <sys/stat.h>
 
 static esp_vfs_littlefs_conf_t config;
@@ -75,10 +77,17 @@ int32_t send_data_to_nexus(void) {
     size_t bytes_read = 0;
     int chunk_index = 0;
 
-    while ((bytes_read = fread(write_file_buffer, 1, CHUNK_SIZE, fs)) > 0) {
+    while ((bytes_read = fread(&write_file_buffer[6], 1, CHUNK_SIZE, fs)) > 0) {
+        write_file_buffer[0] = START_BYTE;
+        write_file_buffer[1] = BLE_FW_CHUNK_DATA;
+        u32_to_byte_array_little_endian(&write_file_buffer[2], bytes_read);
+        uint32_t calc_crc = crc32(write_file_buffer, bytes_read);
+        u32_to_byte_array_little_endian(&write_file_buffer[bytes_read], calc_crc);
+
         ESP_LOGI("UART", "Sending chunk %d (%u bytes)", chunk_index++, (unsigned)bytes_read);
 
         write_data((const char *)write_file_buffer, bytes_read);
+
         ESP_LOGI("UART", "ACK received for chunk %d", chunk_index - 1);
     }
     fclose(fs);

@@ -8,6 +8,7 @@
 /* USER CODE END Header */
 
 #include "crc.h"
+#include "utility.h"
 #include "esp_log.h"
 
 /* DEFINES */

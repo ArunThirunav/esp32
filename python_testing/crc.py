@@ -24,10 +24,15 @@ def crc32_iso(data: bytes) -> int:
     return crc ^ 0xFFFFFFFF
 
 # Test
-byte_array = bytes([0xA5, 0x52, 0x00, 0x00, 0x00, 0x00])
+byte_array = bytes([0xA5, 0x22, 0x00, 0x00, 0x00, 0x00])
 # value = 0xA55000000000
 # byte_array = value.to_bytes(byteorder='big')  # 3 bytes for 24 bits
-print(f"CRC32 (ISO): 0x{crc32_iso(byte_array):08X}")
+crc = crc32_iso(byte_array)
+print(f"CRC32 (ISO): 0x{crc:08X}")
+
+# Get CRC as bytes in little-endian format
+crc_le_bytes = crc.to_bytes(4, byteorder='little')
+print(f"CRC32 (little-endian bytes): {crc_le_bytes.hex().upper()}")  # e.g., "5270EAFD"
 
 # value = 0xA55000
 # byte_array = value.to_bytes(3, byteorder='big')  # 3 bytes for 24 bits

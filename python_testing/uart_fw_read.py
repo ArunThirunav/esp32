@@ -2,15 +2,16 @@ import serial
 import time
 import os
 
-PORT = "/dev/ttyUSB0"         # Change this to match your system
+# PORT = "/dev/ttyUSB0"         # Change this to match your system
+PORT = "COM10"
 BAUDRATE = 1000000            # 1 Mbps
 CHUNK_SIZE = 256 * 1024       # 256 KB
 TOTAL_CHUNKS = 4              # Change this for more/less chunks
-TIMEOUT = 10                  # Timeout per read
+TIMEOUT = None                  # Timeout per read
 
 def read_uart_chunks():
     try:
-        with serial.Serial(PORT, BAUDRATE, timeout=TIMEOUT) as ser:
+        with serial.Serial(port=PORT, baudrate=BAUDRATE) as ser:
             print(f"Reading {TOTAL_CHUNKS} chunks of {CHUNK_SIZE} bytes...")
 
             for chunk_num in range(TOTAL_CHUNKS):
