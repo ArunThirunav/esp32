@@ -57,25 +57,26 @@ static const struct ble_gatt_svc_def gatt_svr_svcs[] = {
 			{
 				.uuid = &gatt_file_write_uuid.u,
 				.access_cb = file_transfer_write_cb,
-				.flags = BLE_GATT_CHR_F_WRITE_NO_RSP | BLE_GATT_CHR_F_NOTIFY,
+				.flags = BLE_GATT_CHR_F_WRITE_AUTHOR | BLE_GATT_CHR_F_WRITE_ENC | BLE_GATT_CHR_F_WRITE_NO_RSP | BLE_GATT_CHR_F_NOTIFY,
         .val_handle = &fw_file_handle,
 			},
 			{
 				.uuid = &gatt_file_read_uuid.u,
 				.access_cb = config_file_read_cb,
-				.flags = BLE_GATT_CHR_F_WRITE | BLE_GATT_CHR_F_NOTIFY,
+				.flags = BLE_GATT_CHR_F_WRITE_AUTHOR | BLE_GATT_CHR_F_WRITE_ENC | BLE_GATT_CHR_F_WRITE_NO_RSP | BLE_GATT_CHR_F_NOTIFY,
         .val_handle = &notify_config_handle,
 			},
 			{
 				.uuid = &gatt_misc_write_uuid.u,
 				.access_cb = request_response_cb,
-				.flags = BLE_GATT_CHR_F_WRITE | BLE_GATT_CHR_F_READ | BLE_GATT_CHR_F_NOTIFY,
+				.flags = BLE_GATT_CHR_F_WRITE_AUTHOR | BLE_GATT_CHR_F_WRITE_ENC | BLE_GATT_CHR_F_WRITE_NO_RSP \
+                | BLE_GATT_CHR_F_READ | BLE_GATT_CHR_F_READ_ENC | BLE_GATT_CHR_F_NOTIFY,
         .val_handle = &req_resp_handle,
 			},
 			{
 				.uuid = &gatt_future_uuid.u,
-				.access_cb = file_transfer_write_cb,
-				.flags = BLE_GATT_CHR_F_WRITE_NO_RSP | BLE_GATT_CHR_F_READ |
+				.access_cb = auth_cb,
+				.flags = BLE_GATT_CHR_F_WRITE | BLE_GATT_CHR_F_READ |
 						BLE_GATT_CHR_F_NOTIFY,
 			},
 			{0},

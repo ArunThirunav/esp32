@@ -19,6 +19,7 @@
         "esp_log.h": "c",
         "task.h": "c",
         "bitset": "c",
-        "regex": "c"
+        "regex": "c",
+        "pk.h": "c"
     }
 }
